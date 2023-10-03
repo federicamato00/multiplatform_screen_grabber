@@ -1,0 +1,24 @@
+[package]
+name = "scratch-master"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+winit="0.28.6"
+rdev="0.5.3"
+iced={version = "0.10.0", features = ["tokio"]}
+scrap="0.5"
+image="0.24.7"
+druid = "0.8.3"
+native-dialog = "0.6.4"
+nfd2="0.3.1"
+objc="0.2"
+core-graphics="0.23.1"
+screenshots="0.8.3"
+druid-shell="0.8.3"
+piet-common = "0.6.2"
+[[bin]]
+name = "scratch-master"
+path = "main.rs"
