@@ -1,7 +1,7 @@
 
 
 use drawing_area::MyRadio;
-use druid::LocalizedString;
+use druid::{LocalizedString, WindowId};
 
 use druid::{AppLauncher, Point, WindowDesc, Rect};
 
@@ -27,6 +27,10 @@ fn main() {
         edit_image_key: (Key::Character("m".to_string())).to_string(),
         cancel_image_modifier: "None".into(),
         cancel_image_key: (Key::Character("".to_string())).to_string(),
+        restart_app_modifier: "None".into(),
+        restart_app_key: (Key::Character("".to_string())).to_string(),
+        restart_format_app_modifier: "None".into(),
+        restart_format_app_key: (Key::Character("".to_string())).to_string(),
         hotkeys: Vec::new(),
         is_selecting: false,
         start_position: Some(Point::ZERO),
@@ -39,6 +43,9 @@ fn main() {
         where_dragging: None,
         radio_group: MyRadio::Png,
         label: "screenshot_grabbed".to_string(),
+        format_window_id: WindowId::next(),
+        shortkeys_window_id : WindowId::next(),
+        main_window_id: main_window.id,        
         
     };
 

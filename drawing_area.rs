@@ -16,6 +16,7 @@ use druid::Size;
 use druid::Widget;
 use druid::WidgetExt;
 use druid::WindowDesc;
+use druid::WindowId;
 use druid::widget::Flex;
 use druid::widget::Button;
 use druid::widget::RadioGroup;
@@ -50,11 +51,21 @@ pub struct AppData {
     pub(crate) edit_image_key: String,
     pub(crate) cancel_image_modifier: String,
     pub(crate) cancel_image_key: String,
+    pub(crate) restart_app_modifier: String,
+    pub(crate) restart_app_key: String,
+    pub(crate) restart_format_app_modifier: String,
+    pub(crate) restart_format_app_key: String,
+    
+    #[data(ignore)]
+    pub(crate) format_window_id: WindowId,
+    #[data(ignore)]
+    pub(crate)shortkeys_window_id: WindowId,
+    #[data(ignore)]
+    pub(crate) main_window_id: WindowId,
     #[data(ignore)]
     pub(crate) hotkeys: Vec<HotKey>,
     
 }
-
 
 #[derive(Clone, Data, PartialEq,Copy,Debug)]
 pub enum MyRadio {
@@ -78,6 +89,7 @@ impl Widget<AppData> for DrawingArea {
         match event {
             Event::WindowConnected => {
                 // Richiedi il focus quando la finestra è connessa.
+                data.main_window_id=ctx.window_id();
                 if data.modify==false
                 {
                     ctx.request_focus();
@@ -109,6 +121,36 @@ impl Widget<AppData> for DrawingArea {
                             
                         
                         
+                    }
+                    if data.hotkeys.get(5).unwrap().matches(key_event){
+                        data.start_position=None;
+                        data.end_position=None;
+                        data.start_position_to_display=None;
+                        data.end_position_to_display=None;
+                        data.is_dragging=false;
+                        data.is_selecting=false;
+                        data.modify=false;
+                        data.rect=Rect::new(0.0, 0.0, 0.0, 0.0);
+                        ctx.submit_command(druid::commands::HIDE_WINDOW.to(data.main_window_id));
+                        ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.format_window_id));
+                    
+                
+                
+                    }
+                    if data.hotkeys.get(4).unwrap().matches(key_event) {
+                        data.start_position=None;
+                        data.end_position=None;
+                        data.start_position_to_display=None;
+                        data.end_position_to_display=None;
+                        data.is_dragging=false;
+                        data.is_selecting=false;
+                        data.modify=false;
+                        data.rect=Rect::new(0.0, 0.0, 0.0, 0.0);
+                        ctx.submit_command(druid::commands::HIDE_WINDOW.to(data.main_window_id));
+                        ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.shortkeys_window_id));
+                    
+                
+                
                     }
                     if data.hotkeys.get(1).unwrap().matches(key_event){
                         // Chiudi la finestra
@@ -173,6 +215,11 @@ impl Widget<AppData> for DrawingArea {
                     // Attendi la fine del thread di cattura screenshot
                     screenshot_thread.join().unwrap();
                     ctx.request_paint();
+                    
+                    data.is_dragging=false;
+                    data.is_selecting=false;
+                    data.modify=false;
+                    
                 
                     
                     
@@ -190,6 +237,16 @@ impl Widget<AppData> for DrawingArea {
             
                 
             druid::Event::MouseDown(mouse_event) => {
+                if data.modify==true && data.is_dragging==false{
+                    data.start_position = None;
+                    data.end_position = None; 
+                    data.start_position_to_display=None;
+                    data.end_position_to_display=None;
+                    data.is_selecting=false;
+                    data.is_dragging=false;
+                    data.modify=false;
+
+                }
                 if data.modify==false && data.is_dragging==false
                    { if mouse_event.button == MouseButton::Left {
                         data.start_position = None;
@@ -346,12 +403,13 @@ impl Widget<AppData> for DrawingArea {
                         _ => {
                             // Gestisci altri sistemi operativi se necessario
                         }
+                        
                     }
                 
                 
                 
                 // Richiedi un aggiornamento del widget per ridisegnare il rettangolo
-                
+               
                 if data.modify==false 
                 {
                     ctx.request_paint();
@@ -365,9 +423,11 @@ impl Widget<AppData> for DrawingArea {
                     data.where_dragging=None;
                     ctx.set_active(false);
                     data.is_selecting=true;
+
                 }
                 if data.modify==false && data.is_dragging==false
-                {if mouse_event.button == MouseButton::Left {
+                {
+                    if mouse_event.button == MouseButton::Left {
                     
                     data.is_selecting = false;
                     data.modify=true;
@@ -524,7 +584,7 @@ impl Widget<AppData> for DrawingArea {
 
 
 pub(crate) fn build_ui(modify:bool) -> impl Widget<AppData> {
-        
+ 
     if modify==false
       {  Flex::column()
           

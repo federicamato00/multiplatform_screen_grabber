@@ -13,6 +13,8 @@ image="0.24.7"
 druid ={ version= "0.8.3", features=["im"]}
 screenshots="0.8.3"
 druid-shell= "0.8.3"
+iced= "0.10.0"
+druid-widget-nursery = "0.1"
 [[bin]]
 name = "scratch-master"
 path = "main.rs"

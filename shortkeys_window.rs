@@ -2,11 +2,12 @@ use druid::widget::{Flex, Label, RadioGroup, TextBox, Button};
 use druid::{Widget, WidgetExt, WindowDesc, Size, EventCtx, Event, Env, UpdateCtx, LifeCycleCtx, LifeCycle, BoxConstraints, LayoutCtx, PaintCtx};
 use druid_shell::keyboard_types::Key;
 use druid_shell::{RawMods, HotKey};
-
 use crate::drawing_area;
 
 
 pub struct AppDataHandler;
+
+
 impl Widget<drawing_area::AppData> for AppDataHandler {
     fn event(&mut self, ctx: &mut EventCtx, event: &Event, data: &mut drawing_area::AppData, _env: &Env) {
         match event {
@@ -25,7 +26,17 @@ impl Widget<drawing_area::AppData> for AppDataHandler {
                     // Chiudi la finestra
                     
                     ctx.submit_command(druid::commands::QUIT_APP);
-                }}
+                }
+                
+                if data.hotkeys.get(4).unwrap().matches(key_event){
+                    
+                    ctx.submit_command(druid::commands::HIDE_WINDOW.to(data.format_window_id));
+                    ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.shortkeys_window_id));
+                
+            
+            
+                }
+                }
             },
             
             _=>{
@@ -58,27 +69,39 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
     
     let save_image = Flex::row()
         .with_child(Label::new("Save modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()),("None","".to_string())]).lens(drawing_area::AppData::save_image_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::save_image_modifier))
         .with_child(Label::new("Save Image Key: "))
         .with_child(TextBox::new().lens(drawing_area::AppData::save_image_key));
-
+    
 
     let quit_app = Flex::row()
         .with_child(Label::new("Quit modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()),("None","".to_string())]).lens(drawing_area::AppData::quit_app_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::quit_app_modifier))
         .with_child(Label::new("Quit App Key: "))
         .with_child(TextBox::new().lens(drawing_area::AppData::quit_app_key));
 
     let edit_image = Flex::row()
         .with_child(Label::new("Edit modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()),("None","".to_string())]).lens(drawing_area::AppData::edit_image_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::edit_image_modifier))
         .with_child(Label::new("Edit Image Key: "))
         .with_child(TextBox::new().lens(drawing_area::AppData::edit_image_key));
     let cancel_image = Flex::row()
         .with_child(Label::new("Cancel modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()),("None","".to_string())]).lens(drawing_area::AppData::cancel_image_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::cancel_image_modifier))
         .with_child(Label::new("Cancel Image Key: "))
         .with_child(TextBox::new().lens(drawing_area::AppData::cancel_image_key));
+
+    let restart = Flex::row()
+        .with_child(Label::new("Restart modifier: "))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::restart_app_modifier))
+        .with_child(Label::new("Restar Image Key: "))
+        .with_child(TextBox::new().lens(drawing_area::AppData::restart_app_key));
+    let choose_format: Flex<drawing_area::AppData> = Flex::row()
+        .with_child(Label::new("Rechoose format modifier: "))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::restart_format_app_modifier))
+        .with_child(Label::new("Rechoose format Image Key: "))
+        .with_child(TextBox::new().lens(drawing_area::AppData::restart_format_app_key));
+
 
     let apply_button = Button::new("Apply").on_click(|ctx, data: &mut drawing_area::AppData, _env| {
         // Qui puoi definire le tue HotKey basate sui valori in data
@@ -259,15 +282,105 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             let edit_image_hotkey = HotKey::new(edit_image_modifier, Key::Character(key));
             data.hotkeys.push(edit_image_hotkey);
         }
+        let restart_app_modifier = match data.restart_app_modifier.as_str() {
+            "Ctrl" => Some(RawMods::Ctrl), 
+            "Shift" => Some(RawMods::Shift),
+            "Escape" => Some(RawMods::None),
+            "Enter" => Some(RawMods::Meta),
+            _ => None,
+        };
+        let mut key=data.restart_app_key.clone();
+        //println!("{:?}",data.save_image_key);
+       if (restart_app_modifier.eq(&Some(RawMods::Ctrl)) && data.restart_app_key=="".to_string()) || (restart_app_modifier.eq(&Some(RawMods::Shift)) && data.restart_app_key=="".to_string()){
+            if restart_app_modifier.eq(&Some(RawMods::Ctrl))
+            {
+                let restart_app_hotkey = HotKey::new(None, Key::Control);
+                data.hotkeys.push(restart_app_hotkey);
+            }
+            else {
+                let restart_app_hotkey = HotKey::new(None, Key::Shift);
+                data.hotkeys.push(restart_app_hotkey);
+            }
+           }
+       else if restart_app_modifier.eq(&Some(RawMods::Shift)){
+            key.make_ascii_uppercase();
+            let restart_app_hotkey = HotKey::new(restart_app_modifier, Key::Character(key));
+            data.hotkeys.push(restart_app_hotkey);
+
+       }
+       
+       else if restart_app_modifier.eq(&Some(RawMods::None))
+        {
+        let restart_app_hotkey = HotKey::new(None, Key::Escape);
+        data.hotkeys.push(restart_app_hotkey);
+
+        }
+        else if restart_app_modifier.eq(&Some(RawMods::Meta)) {
+            let restart_app_hotkey = HotKey::new(None, Key::Enter);
+            data.hotkeys.push(restart_app_hotkey);
+        }
+        else 
+        {
+            
+        let restart_app_hotkey = HotKey::new(restart_app_modifier, Key::Character(key));
+        data.hotkeys.push(restart_app_hotkey);
+        }
         
+        let restart_format_app_modifier = match data.restart_format_app_modifier.as_str() {
+            "Ctrl" => Some(RawMods::Ctrl), 
+            "Shift" => Some(RawMods::Shift),
+            "Escape" => Some(RawMods::None),
+            "Enter" => Some(RawMods::Meta),
+            _ => None,
+        };
+        let mut key=data.restart_format_app_key.clone();
+        //println!("{:?}",data.save_image_key);
+       if (restart_format_app_modifier.eq(&Some(RawMods::Ctrl)) && data.restart_format_app_key=="".to_string()) || (restart_format_app_modifier.eq(&Some(RawMods::Shift)) && data.restart_format_app_key=="".to_string()){
+            if restart_format_app_modifier.eq(&Some(RawMods::Ctrl))
+            {
+                let restart_format_app_hotkey = HotKey::new(None, Key::Control);
+                data.hotkeys.push(restart_format_app_hotkey);
+            }
+            else {
+                let restart_format_app_hotkey = HotKey::new(None, Key::Shift);
+                data.hotkeys.push(restart_format_app_hotkey);
+            }
+           }
+       else if restart_format_app_modifier.eq(&Some(RawMods::Shift)){
+            key.make_ascii_uppercase();
+            let restart_format_app_hotkey = HotKey::new(restart_format_app_modifier, Key::Character(key));
+            data.hotkeys.push(restart_format_app_hotkey);
+
+       }
+       
+       else if restart_format_app_modifier.eq(&Some(RawMods::None))
+        {
+        let restart_format_app_hotkey = HotKey::new(None, Key::Escape);
+        data.hotkeys.push(restart_format_app_hotkey);
+
+        }
+        else if restart_format_app_modifier.eq(&Some(RawMods::Meta)) {
+            let restart_format_app_hotkey = HotKey::new(None, Key::Enter);
+            data.hotkeys.push(restart_format_app_hotkey);
+        }
+        else 
+        {
+            
+        let restart_format_app_hotkey = HotKey::new(restart_format_app_modifier, Key::Character(key));
+        data.hotkeys.push(restart_format_app_hotkey);
+        }
         
+
+
         let format_window= WindowDesc::new(drawing_area::build_ui(true)).transparent(false)
                         .title("Choose the format. Default is .png").window_size(Size::new(200.0, 200.0))
                         .set_always_on_top(true);
                         
                     
-       if are_all_fields_completed(data) 
+       if are_all_fields_completed(data) && !some_fields_are_equal(data)
             {
+                data.format_window_id= format_window.id;
+                data.shortkeys_window_id= ctx.window_id();
                 let id= format_window.id;
             
                 ctx.new_window(format_window);
@@ -284,13 +397,27 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
         } else {
             "Per favore, compila tutti i campi.".to_string()
         }
+        
     });
+    let errore_field = Label::new(|data: &drawing_area::AppData,_env: &Env| {
+        if some_fields_are_equal(data) {
+            
+            "Stesse shortkeys non sono ammesse".to_string()
+        }
+        else  {
+            "".to_string()
+        }
+    });
+    
     Flex::column()
         .with_child(errore)
+        .with_child(errore_field)
         .with_child(save_image)
         .with_child(quit_app)
         .with_child(edit_image)
         .with_child(cancel_image)
+        .with_child(restart)
+        .with_child(choose_format)
         .with_child(apply_button)
         .with_child(AppDataHandler)
         
@@ -300,6 +427,7 @@ fn are_all_fields_completed(data: &drawing_area::AppData) -> bool {
     
     if (data.save_image_modifier!="None".to_string() || data.save_image_key!="".to_string()) && (data.edit_image_modifier!="None".to_string() || data.edit_image_key!="".to_string()) 
     && (data.quit_app_key!="".to_string() || data.quit_app_modifier!="None".to_string()) && (data.cancel_image_key!="".to_string() || data.cancel_image_modifier!="None".to_string()) 
+    && (data.restart_app_modifier!="None".to_string() || data.restart_app_key!="".to_string()) && (data.restart_format_app_modifier!="None".to_string() || data.restart_format_app_key!="".to_string()) 
     {
         
         true
@@ -307,5 +435,29 @@ fn are_all_fields_completed(data: &drawing_area::AppData) -> bool {
     else 
     {
             false
+    }
+}
+
+fn some_fields_are_equal(data: &drawing_area::AppData) -> bool {
+    if (data.cancel_image_modifier == data.save_image_modifier && data.cancel_image_key == data.save_image_key ) 
+    || (data.cancel_image_modifier == data.restart_app_modifier && data.cancel_image_key == data.restart_app_key ) ||
+    (data.cancel_image_modifier == data.restart_format_app_modifier && data.cancel_image_key == data.restart_format_app_key ) ||
+    (data.cancel_image_modifier == data.edit_image_modifier && data.cancel_image_key == data.edit_image_key) || 
+    (data.cancel_image_modifier == data.quit_app_modifier && data.cancel_image_key == data.quit_app_modifier ) ||
+    (data.save_image_modifier == data.quit_app_modifier && data.save_image_key == data.quit_app_modifier ) ||
+    (data.save_image_modifier == data.restart_format_app_modifier && data.save_image_key == data.restart_format_app_key ) ||
+    (data.save_image_modifier == data.restart_app_modifier && data.save_image_key == data.restart_app_key ) ||
+    (data.save_image_modifier == data.edit_image_modifier && data.save_image_key == data.edit_image_key ) ||
+    (data.quit_app_modifier == data.edit_image_modifier && data.quit_app_key == data.edit_image_key ) || 
+    (data.quit_app_modifier == data.restart_app_modifier && data.quit_app_key == data.restart_app_key ) ||
+    (data.quit_app_modifier == data.restart_format_app_modifier && data.quit_app_key == data.restart_format_app_key ) ||
+    (data.edit_image_modifier == data.restart_app_modifier && data.edit_image_key == data.restart_app_key ) ||
+    (data.restart_app_modifier == data.restart_format_app_modifier && data.restart_app_key == data.restart_format_app_key ) ||
+    (data.edit_image_modifier == data.restart_format_app_modifier && data.edit_image_key == data.restart_format_app_key )
+    {
+        true
+    }
+    else {
+        false
     }
 }
