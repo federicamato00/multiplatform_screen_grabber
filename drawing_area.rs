@@ -14,21 +14,16 @@ use druid::Rect;
 use druid::RenderContext;
 use druid::Size;
 use druid::Widget;
-use druid::WidgetExt;
-use druid::WindowDesc;
 use druid::WindowId;
 use druid::widget::Flex;
-use druid::widget::Button;
-use druid::widget::RadioGroup;
-use druid::widget::TextBox;
+
 use druid_shell::MouseButton;
 use scrap::Capturer;
 use scrap::Display;
 use druid::Lens;
 use druid_shell::HotKey;
 use crate::screenshot;
-use crate::shortkeys_window::AppDataHandler;
-
+use crate::window_format;
 
 #[derive(Clone, Data, Lens)]
 pub struct AppData {
@@ -41,7 +36,7 @@ pub struct AppData {
     pub(crate) is_dragging:bool,
     pub(crate) rect: Rect,
     pub(crate) where_dragging: Option<DragHandle>,
-    pub(crate) radio_group: MyRadio,
+    pub(crate) radio_group: window_format::MyRadio,
     pub(crate) label: String,
     pub(crate) save_image_modifier: String,
     pub(crate) save_image_key: String,
@@ -67,13 +62,7 @@ pub struct AppData {
     
 }
 
-#[derive(Clone, Data, PartialEq,Copy,Debug)]
-pub enum MyRadio {
-    Png,
-    Jpeg,
-    Bmp,
-   
-}
+
 #[derive(Clone,Data,PartialEq)]
 pub enum DragHandle {
     TopLeft,
@@ -508,12 +497,12 @@ impl Widget<AppData> for DrawingArea {
             "macos" => {
                     
                     let pos=ctx.window().get_position();
-                    //println!("pos: {:?}", pos);
+                    
                     let display_primary = Display::primary().expect("couldn't find primary display");
                     //println!("Altezza layout{:?}",display_primary.height());
                     let width = display_primary.width();
                     let height = display_primary.height();
-                    ctx.window().set_position(druid::Point::new(pos.x, pos.y));
+                    ctx.window().set_position(druid::Point::new(0.-pos.x, 0.-pos.y));
                     let size = Size::new(width as f64, height as f64);
             size
                         
@@ -583,62 +572,10 @@ impl Widget<AppData> for DrawingArea {
 }
 
 
-pub(crate) fn build_ui(modify:bool) -> impl Widget<AppData> {
+pub(crate) fn build_ui() -> impl Widget<AppData> {
  
-    if modify==false
-      {  Flex::column()
-          
-          .with_child(DrawingArea)
-      }
-      else {
-          
-          let button=Button::new("Save").on_click(move |ctx, data: &mut AppData, _| {
-              if data.label=="".to_string(){
-                data.label="screenshot_grabbed".to_string();
-              }
-              let display_primary = Display::primary().expect("couldn't find primary display");
-              
-              let main_window = WindowDesc::new(build_ui(false))
-                  //.title(LocalizedString::new("Screen Capture Utility"))
-                  //.show_titlebar(false)
-                  //.set_level(druid::WindowLevel::AppWindow)
-                  .with_min_size(Size::new(display_primary.width() as f64,display_primary.width() as f64))
-                  .set_position(druid::Point::new(0.,0.))
-                  //.window_size(Size::new(0., 0.))
-                  .resizable(true)
-                  //.show_titlebar(false)
-                  .set_always_on_top(true)
-                  .transparent(true)
-                  
-                  ;
-
-              let id= main_window.id;
-              
-              ctx.new_window(main_window);
-              ctx.submit_command(druid::commands::SHOW_WINDOW.to(id));
-              ctx.submit_command(druid::commands::HIDE_WINDOW.to(ctx.window_id()));
-
-              
-          });
-  
-          let textbox= TextBox::new()
-          .with_placeholder("choose the name of the capturer (default screenshot_grabbed)")
-          .lens(AppData::label)
-          .padding(3.0);
-          
-          Flex::column() 
-              .with_child(textbox)
-              .with_child(
-              RadioGroup::column(vec![
-                  ("Png", MyRadio::Png),
-                  ("Jpeg", MyRadio::Jpeg),
-                  ("Bmp", MyRadio::Bmp),
-                  
-  
-              ])
-              .lens(AppData::radio_group),
-              
-          ).with_child(button).with_child(AppDataHandler)
-         
-      }
+     Flex::column()
+     .with_child(DrawingArea)
+      
+     
   }

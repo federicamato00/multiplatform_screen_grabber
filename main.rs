@@ -1,6 +1,6 @@
 
 
-use drawing_area::MyRadio;
+use window_format::MyRadio;
 use druid::{LocalizedString, WindowId};
 
 use druid::{AppLauncher, Point, WindowDesc, Rect};
@@ -10,7 +10,7 @@ use druid_shell::keyboard_types::Key;
 mod screenshot;
 mod drawing_area;
 mod shortkeys_window;
-
+mod window_format;
 
 fn main() {
 

@@ -1,11 +1,40 @@
-use druid::widget::{Flex, Label, RadioGroup, TextBox, Button};
+use druid::widget::{Flex, Label, RadioGroup, TextBox, Button, Controller};
 use druid::{Widget, WidgetExt, WindowDesc, Size, EventCtx, Event, Env, UpdateCtx, LifeCycleCtx, LifeCycle, BoxConstraints, LayoutCtx, PaintCtx};
 use druid_shell::keyboard_types::Key;
 use druid_shell::{RawMods, HotKey};
+use druid::Event::KeyDown;
 use crate::drawing_area;
-
-
+use crate::window_format;
 pub struct AppDataHandler;
+
+
+
+struct MyController;
+
+impl Controller<String, TextBox<String>> for MyController {
+    fn event(
+        &mut self,
+        child: &mut TextBox<String>,
+        ctx: &mut EventCtx,
+        event: &Event,
+        data: &mut String,
+        env: &Env,
+    ) {
+        match event {
+
+            
+            KeyDown(_key_event) => {
+                if data.len()>1{
+                    
+                    data.truncate(1);
+                    
+                }
+            }
+            _ => (),
+        }
+        child.event(ctx, event, data, env)
+    }
+}
 
 
 impl Widget<drawing_area::AppData> for AppDataHandler {
@@ -71,36 +100,36 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
         .with_child(Label::new("Save modifier: "))
         .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::save_image_modifier))
         .with_child(Label::new("Save Image Key: "))
-        .with_child(TextBox::new().lens(drawing_area::AppData::save_image_key));
+        .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::save_image_key));
     
 
     let quit_app = Flex::row()
         .with_child(Label::new("Quit modifier: "))
         .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::quit_app_modifier))
         .with_child(Label::new("Quit App Key: "))
-        .with_child(TextBox::new().lens(drawing_area::AppData::quit_app_key));
+        .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::quit_app_key));
 
     let edit_image = Flex::row()
         .with_child(Label::new("Edit modifier: "))
         .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::edit_image_modifier))
         .with_child(Label::new("Edit Image Key: "))
-        .with_child(TextBox::new().lens(drawing_area::AppData::edit_image_key));
+        .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::edit_image_key));
     let cancel_image = Flex::row()
         .with_child(Label::new("Cancel modifier: "))
         .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::cancel_image_modifier))
         .with_child(Label::new("Cancel Image Key: "))
-        .with_child(TextBox::new().lens(drawing_area::AppData::cancel_image_key));
+        .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::cancel_image_key));
 
     let restart = Flex::row()
         .with_child(Label::new("Restart modifier: "))
         .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::restart_app_modifier))
         .with_child(Label::new("Restar Image Key: "))
-        .with_child(TextBox::new().lens(drawing_area::AppData::restart_app_key));
+        .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::restart_app_key));
     let choose_format: Flex<drawing_area::AppData> = Flex::row()
         .with_child(Label::new("Rechoose format modifier: "))
         .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::restart_format_app_modifier))
         .with_child(Label::new("Rechoose format Image Key: "))
-        .with_child(TextBox::new().lens(drawing_area::AppData::restart_format_app_key));
+        .with_child(TextBox::new().with_placeholder("Inserisci un solo carattere").controller(MyController).lens(drawing_area::AppData::restart_format_app_key));
 
 
     let apply_button = Button::new("Apply").on_click(|ctx, data: &mut drawing_area::AppData, _env| {
@@ -372,7 +401,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
         
 
 
-        let format_window= WindowDesc::new(drawing_area::build_ui(true)).transparent(false)
+        let format_window= WindowDesc::new(window_format::build_ui()).transparent(false)
                         .title("Choose the format. Default is .png").window_size(Size::new(200.0, 200.0))
                         .set_always_on_top(true);
                         
