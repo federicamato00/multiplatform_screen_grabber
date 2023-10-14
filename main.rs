@@ -45,7 +45,8 @@ fn main() {
         label: "screenshot_grabbed".to_string(),
         format_window_id: WindowId::next(),
         shortkeys_window_id : WindowId::next(),
-        main_window_id: main_window.id,        
+        main_window_id: main_window.id,     
+           
         
     };
 

@@ -95,7 +95,7 @@ impl Widget<AppData> for DrawingArea {
             
                Event::KeyUp(key_event)=> {
                 
-                
+               
                     if data.hotkeys.get(2).unwrap().matches(key_event){
                         // Chiudi la finestra
                         
@@ -316,6 +316,11 @@ impl Widget<AppData> for DrawingArea {
                             data.end_position_to_display=Some(druid::Point{ x: mouse_event.pos.x,y:mouse_event.pos.y});
                             data.end_position= Some(coord);
                             }
+
+                            // questa parte qua bisogna implementarla anche per il caso os="windows" tenendo conto che per quel caso
+                            // data.start_position_to_display corrispondono ai dati non fattorizzati e così anche per end_position 
+                            // da considerare anche che pos per macos corrisponde alla fattorizzazione che con windows si fa con il fattore scala
+                            //per cui coord bisogna adeguarlo con i dati fattorizzati con scale_factor_x
                             if ctx.is_active() {
                     
                                 if let Some(handle) = &data.where_dragging {
@@ -430,6 +435,7 @@ impl Widget<AppData> for DrawingArea {
                             let scale_factor_y = ctx.window().get_scale().unwrap().y();
                             let coord = druid::Point{ x:mouse_event.pos.x * scale_factor_x ,y:mouse_event.pos.y*scale_factor_y};
                             data.end_position = Some(coord);
+                            data.rect = druid::Rect::from_points(data.start_position.unwrap(), data.end_position.unwrap());
                         }
                         _ => {
                             

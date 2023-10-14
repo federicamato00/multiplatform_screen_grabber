@@ -50,15 +50,22 @@ pub fn screen( format: MyRadio,mut capturer:Capturer,width: u32,height: u32,star
        
      
     
-    let im=DynamicImage::from(image.clone());
-    let _=DynamicImage::from(im).save("original.png");
+    // let im=DynamicImage::from(image.clone());
+    // let _=DynamicImage::from(im).save("original.png");
     //println!("Image size: {:?}, {:?}", im.width(), im.height());
     // Ritaglia l'immagine all'area specificata.
     if let (Some((x1, y1)), Some((x2, y2))) = (*start_position.lock().unwrap(), *end_position.lock().unwrap()) {
      
         let sub_image = (DynamicImage::from(image)).crop((x1+1.) as u32, (y1+1.) as u32, (x2-x1-1.5) as u32, (y2-y1-1.5) as u32);
         //println!("{:?}, {:?} x1: {:?}, y1: {:?}", (x2-x1), (y2-y1),x1,y1);
-        match sub_image.save("screenshot_grabbed.png") {
+        let form = match new_format
+       {     MyRadio::Png => "png",
+            MyRadio::Jpeg => "jpeg",
+            MyRadio::Bmp => "bmp",
+            
+            
+        };
+        match sub_image.save(name_capture.to_owned()+"."+form.clone()) {
             Ok(_) => break,
             Err(e) if e.to_string().contains("Zero width not allowed") => continue,
             Err(_) => panic!("Unexpected error!"),
@@ -89,9 +96,10 @@ _ => {
         // }
         
         let screen = Screen::from_point(0, 0).unwrap();
-    
+        // let original=screen.capture().unwrap();
+        // original.save("original.".to_owned()+form.clone()).unwrap();
         let image: ImageBuffer<Rgba<u8>, Vec<u8>> = screen.capture_area(x1 as i32 +1 , y1 as i32+1 , ((x2-x1)-1.5) as u32, ((y2-y1)-1.5) as u32).unwrap();
-        image.save("screenshots/".to_owned()+&name_capture+"."+form.clone())
+        image.save(name_capture.to_owned()+"."+form.clone())
         .unwrap();
         
     }

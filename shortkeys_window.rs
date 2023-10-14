@@ -1,7 +1,8 @@
 use druid::widget::{Flex, Label, RadioGroup, TextBox, Button, Controller};
 use druid::{Widget, WidgetExt, WindowDesc, Size, EventCtx, Event, Env, UpdateCtx, LifeCycleCtx, LifeCycle, BoxConstraints, LayoutCtx, PaintCtx};
 use druid_shell::keyboard_types::Key;
-use druid_shell::{RawMods, HotKey};
+use druid_shell::RawMods;
+use druid::HotKey;
 use druid::Event::KeyDown;
 use crate::drawing_area;
 use crate::window_format;
@@ -49,6 +50,7 @@ impl Widget<drawing_area::AppData> for AppDataHandler {
             }
             
             Event::KeyUp(key_event) => {
+                
                 if !data.hotkeys.is_empty()
                 {
                 if data.hotkeys.get(2).unwrap().matches(key_event){
@@ -98,36 +100,36 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
     
     let save_image = Flex::row()
         .with_child(Label::new("Save modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::save_image_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()), ("Alt", "Alt".to_string())]).lens(drawing_area::AppData::save_image_modifier))
         .with_child(Label::new("Save Image Key: "))
         .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::save_image_key));
     
 
     let quit_app = Flex::row()
         .with_child(Label::new("Quit modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::quit_app_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()), ("Alt", "Alt".to_string())]).lens(drawing_area::AppData::quit_app_modifier))
         .with_child(Label::new("Quit App Key: "))
         .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::quit_app_key));
 
     let edit_image = Flex::row()
         .with_child(Label::new("Edit modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::edit_image_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()), ("Alt", "Alt".to_string())]).lens(drawing_area::AppData::edit_image_modifier))
         .with_child(Label::new("Edit Image Key: "))
         .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::edit_image_key));
     let cancel_image = Flex::row()
         .with_child(Label::new("Cancel modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::cancel_image_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()), ("Alt", "Alt".to_string())]).lens(drawing_area::AppData::cancel_image_modifier))
         .with_child(Label::new("Cancel Image Key: "))
         .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::cancel_image_key));
 
     let restart = Flex::row()
         .with_child(Label::new("Restart modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::restart_app_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()), ("Alt", "Alt".to_string())]).lens(drawing_area::AppData::restart_app_modifier))
         .with_child(Label::new("Restar Image Key: "))
         .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::restart_app_key));
     let choose_format: Flex<drawing_area::AppData> = Flex::row()
         .with_child(Label::new("Rechoose format modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::restart_format_app_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()), ("Alt", "Alt".to_string())]).lens(drawing_area::AppData::restart_format_app_modifier))
         .with_child(Label::new("Rechoose format Image Key: "))
         .with_child(TextBox::new().with_placeholder("Inserisci un solo carattere").controller(MyController).lens(drawing_area::AppData::restart_format_app_key));
 
@@ -140,9 +142,11 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             "Shift" => Some(RawMods::Shift),
             "Escape" => Some(RawMods::None),
             "Enter" => Some(RawMods::Meta),
+            "Alt" => Some(RawMods::Alt),
             _ => None,
         };
         let mut key=data.save_image_key.clone();
+       
         //println!("{:?}",data.save_image_key);
        if (save_image_modifier.eq(&Some(RawMods::Ctrl)) && data.save_image_key=="".to_string()) || (save_image_modifier.eq(&Some(RawMods::Shift)) && data.save_image_key=="".to_string()){
             if save_image_modifier.eq(&Some(RawMods::Ctrl))
@@ -183,6 +187,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             "Shift" => Some(RawMods::Shift),
             "Escape" => Some(RawMods::None),
             "Enter" => Some(RawMods::Meta),
+            "Alt" => Some(RawMods::Alt),
             _ => None,
         };
         let mut key=data.cancel_image_key.clone();
@@ -228,6 +233,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             "Shift" => Some(RawMods::Shift),
             "Escape" => Some(RawMods::None),
             "Enter" => Some(RawMods::Meta),
+            "Alt" => Some(RawMods::Alt),
             _ => None,
         };
         //let _quit_app_hotkey = HotKey::new(quit_app_modifier, key);
@@ -274,6 +280,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             "Shift" => Some(RawMods::Shift),
             "Escape" => Some(RawMods::None),
             "Enter" => Some(RawMods::Meta),
+            "Alt" => Some(RawMods::Alt),
             _ => None,
         };
         
@@ -316,6 +323,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             "Shift" => Some(RawMods::Shift),
             "Escape" => Some(RawMods::None),
             "Enter" => Some(RawMods::Meta),
+            "Alt" => Some(RawMods::Alt),
             _ => None,
         };
         let mut key=data.restart_app_key.clone();
@@ -360,6 +368,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             "Shift" => Some(RawMods::Shift),
             "Escape" => Some(RawMods::None),
             "Enter" => Some(RawMods::Meta),
+            "Alt" => Some(RawMods::Alt),
             _ => None,
         };
         let mut key=data.restart_format_app_key.clone();
@@ -413,8 +422,9 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 let id= format_window.id;
             
                 ctx.new_window(format_window);
-                ctx.submit_command(druid::commands::SHOW_WINDOW.to(id));
                 ctx.submit_command(druid::commands::HIDE_WINDOW.to(ctx.window_id()));
+                ctx.submit_command(druid::commands::SHOW_WINDOW.to(id));
+                
             }
         
 
@@ -490,3 +500,4 @@ fn some_fields_are_equal(data: &drawing_area::AppData) -> bool {
         false
     }
 }
+
