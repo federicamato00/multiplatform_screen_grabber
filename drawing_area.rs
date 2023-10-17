@@ -1,3 +1,5 @@
+
+
 use std::env;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -17,11 +19,15 @@ use druid::Widget;
 use druid::WindowId;
 use druid::widget::Flex;
 
+use druid_shell::KeyEvent;
+use druid_shell::keyboard_types::Key;
+use druid_shell::Modifiers as Mod;
+
 use druid_shell::MouseButton;
+use druid_shell::keyboard_types::Modifiers;
 use scrap::Capturer;
 use scrap::Display;
 use druid::Lens;
-use druid_shell::HotKey;
 use crate::screenshot;
 use crate::window_format;
 
@@ -50,7 +56,7 @@ pub struct AppData {
     pub(crate) restart_app_key: String,
     pub(crate) restart_format_app_modifier: String,
     pub(crate) restart_format_app_key: String,
-    
+    pub(crate) is_pressed:bool,
     #[data(ignore)]
     pub(crate) format_window_id: WindowId,
     #[data(ignore)]
@@ -58,9 +64,32 @@ pub struct AppData {
     #[data(ignore)]
     pub(crate) main_window_id: WindowId,
     #[data(ignore)]
-    pub(crate) hotkeys: Vec<HotKey>,
+    pub(crate) hotkeys: Vec<MyHotkey>,
+    #[data(ignore)]
+    pub(crate) last_key_event: Option<KeyEvent>,
     
 }
+
+
+#[derive(Clone,Data,PartialEq,Debug)]
+pub enum Action {
+    Quit,
+    Edit,
+    Save,
+    RestartFormat,
+    RestartApp,
+    Cancel,
+    // Aggiungi qui altre azioni...
+}
+
+// Definisci la struttura della tua hotkey
+
+#[derive(Clone,PartialEq,Debug)]
+pub struct MyHotkey {
+    pub(crate) keys: druid::keyboard_types::Key,
+    pub(crate)action: Action,
+    pub(crate) mods: Modifiers,
+} 
 
 
 #[derive(Clone,Data,PartialEq)]
@@ -71,10 +100,34 @@ pub enum DragHandle {
     BottomRight,
 }
 
+impl MyHotkey {
+    pub fn matches(&self, event_mods: Mod, event_key: Key) -> bool {
+        // Should be a const but const bit_or doesn't work here.
+        let mods= match self.mods {
+            Modifiers::SHIFT => Mod::SHIFT,
+            Modifiers::META => Mod::META,
+            Modifiers::CONTROL => Mod::CONTROL,
+            _=> {Mod::empty()},
+        };
+        // let event = event.borrow();
+        
+        
+        // mods == event.mods  && self.keys == event.key
+        //println!("hotkey {:?},event: {:?}, key event: {:?}",mods,event_mods,event_key);
+        let all_mod_pressed = mods==event_mods;
+
+        // Controlla se ci sono altri tasti premuti
+        let all_keys_pressed = self.keys==event_key;
+        
+        all_keys_pressed && all_mod_pressed
+    }
+}
 struct DrawingArea;
 
 impl Widget<AppData> for DrawingArea {
     fn event(&mut self, ctx: &mut EventCtx, event: &druid::Event, data: &mut AppData, _env: &Env) {
+        
+        
         match event {
             Event::WindowConnected => {
                 // Richiedi il focus quando la finestra è connessa.
@@ -89,132 +142,199 @@ impl Widget<AppData> for DrawingArea {
                             let size = Size::new(display_primary.width() as f64, display_primary.height() as f64); // Imposta le dimensioni desiderate qui
                             ctx.window().set_size(size);
                             //println!("size window {:?}",size);
+                            data.is_pressed=false;
                        
                 
             }
             
+         
                Event::KeyUp(key_event)=> {
                 
+            
+               if let Some(last_event) = data.last_key_event.clone() {
+                let key= match last_event.mods {
+                    Mod::CONTROL => Key::Control,
+                    Mod::SHIFT => Key::Shift,
+                    Mod::META=> Key::Meta,
+                    _=> Key::Fn,
+                    
+                };
                
-                    if data.hotkeys.get(2).unwrap().matches(key_event){
-                        // Chiudi la finestra
+                   
+                    if key==(key_event.key) && key_event.key!=last_event.key {
+
+                        data.is_pressed=true;
                         
-                        ctx.submit_command(druid::commands::QUIT_APP);
+                        
+                       
                     }
-                    if data.hotkeys.get(3).unwrap().matches(key_event) && data.modify==true {
-                        
-                                if let (Some(_start), Some(_end)) = (data.start_position, data.end_position) {
-                                    // Calculate the selected rectangle
-                                    data.is_dragging=true;
-                                }
-                            
-                        
-                        
+                    else {
+                        data.is_pressed=false;
                     }
-                    if data.hotkeys.get(5).unwrap().matches(key_event){
-                        data.start_position=None;
-                        data.end_position=None;
-                        data.start_position_to_display=None;
-                        data.end_position_to_display=None;
-                        data.is_dragging=false;
-                        data.is_selecting=false;
-                        data.modify=false;
-                        data.rect=Rect::new(0.0, 0.0, 0.0, 0.0);
-                        ctx.submit_command(druid::commands::HIDE_WINDOW.to(data.main_window_id));
-                        ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.format_window_id));
+                   
+                   
+                }
+                
+                if data.is_pressed!=true
+                {
                     
                 
-                
-                    }
-                    if data.hotkeys.get(4).unwrap().matches(key_event) {
-                        data.start_position=None;
-                        data.end_position=None;
-                        data.start_position_to_display=None;
-                        data.end_position_to_display=None;
-                        data.is_dragging=false;
-                        data.is_selecting=false;
-                        data.modify=false;
-                        data.rect=Rect::new(0.0, 0.0, 0.0, 0.0);
-                        ctx.submit_command(druid::commands::HIDE_WINDOW.to(data.main_window_id));
-                        ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.shortkeys_window_id));
+                    if data.hotkeys.get(2).unwrap().matches(key_event.mods,key_event.key.clone()) && !data.is_pressed
+                    {
+                                // Chiudi la finestra
+                                ctx.submit_command(druid::commands::QUIT_APP);
+                                
+                    } 
+                            
+                    else if data.hotkeys.get(4).unwrap().matches(key_event.mods,key_event.key.clone()) && !data.is_pressed{
+                                
+                                    data.start_position=None;
+                                    data.end_position=None;
+                                    data.start_position_to_display=None;
+                                    data.end_position_to_display=None;
+                                    data.is_dragging=false;
+                                    data.is_selecting=false;
+                                    data.modify=false;
+                                    data.hotkeys=Vec::new();
+                                    data.is_pressed=true;
+                                    data.last_key_event = Some(key_event.clone());
+                                    data.rect=Rect::new(0.0, 0.0, 0.0, 0.0);
+                                    ctx.submit_command(druid::commands::HIDE_WINDOW.to(data.main_window_id));
+                                    ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.shortkeys_window_id));
+                                    
+                                
+
+                                
                     
-                
-                
                     }
-                    if data.hotkeys.get(1).unwrap().matches(key_event){
-                        // Chiudi la finestra
-                        data.start_position=None;
-                        data.end_position=None;
-                        data.start_position_to_display=None;
-                        data.end_position_to_display=None;
-                        data.is_dragging=false;
-                        data.is_selecting=false;
-                        data.modify=false;
-                        data.rect=Rect::new(0.0, 0.0, 0.0, 0.0);
-                        ctx.request_paint();
-                    }
+                     else if data.hotkeys.get(3).unwrap().matches(key_event.mods,key_event.key.clone()) && !data.is_pressed{
+                                
+                                    if let (Some(_start), Some(_end)) = (data.start_position, data.end_position) {
+                                        // Calculate the selected rectangle
+                                        data.is_dragging=true;
+                                    }
+                                data.is_pressed=true;
+                                data.last_key_event = Some(key_event.clone());
+                                
+                            
+                            }
+
+                    else if data.hotkeys.get(5).unwrap().matches(key_event.mods,key_event.key.clone()) && data.is_pressed!=true{
+                                
+                                    data.start_position=None;
+                                    data.end_position=None;
+                                    data.start_position_to_display=None;
+                                    data.end_position_to_display=None;
+                                    data.is_dragging=false;
+                                    data.is_selecting=false;
+                                    data.modify=false;
+                                    data.is_pressed=false;
+                                    data.last_key_event = Some(key_event.clone());
+                                    data.rect=Rect::new(0.0, 0.0, 0.0, 0.0);
+                                    ctx.submit_command(druid::commands::HIDE_WINDOW.to(data.main_window_id));
+                                    ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.format_window_id));
+                                    
+                                
+                            }
+
+                    else if data.hotkeys.get(1).unwrap().matches(key_event.mods,key_event.key.clone()) && !data.is_pressed{
+                                    
+                                    data.start_position=None;
+                                    data.end_position=None;
+                                    data.start_position_to_display=None;
+                                    data.end_position_to_display=None;
+                                    data.is_dragging=false;
+                                    data.is_selecting=false;
+                                    data.modify=false;
+                                    data.rect=Rect::new(0.0, 0.0, 0.0, 0.0);
+                                    ctx.request_paint();
+                                    data.is_pressed=true;
+                                    data.last_key_event = Some(key_event.clone());
+                                    //println!("sei in cancel {:?}", data.last_key_event);
+                                    
+                                    
                     
-                    if data.hotkeys.get(0).unwrap().matches(key_event) {
+                                
+                            }
+                    else if data.hotkeys.get(0).unwrap().matches(key_event.mods,key_event.key.clone()) && !data.is_pressed{
+                                
+                                    
+                                    if let (Some(start), Some(end)) = (data.start_position, data.end_position) {
+                                        data.is_dragging=false;
+                                        
+                                       
+                                        let name= data.label.clone();
+                                        let format= data.radio_group;
+                                        let size_clone= Arc::new(Mutex::new(None));
+                                    
+                                         // Calcola il rettangolo selezionato
+                                        let rect = druid::Rect::from_points(start, end);
+                                        
+                                        // Chiama la funzione per catturare lo screenshot
+                                        
+                                        let start_position = Arc::new(Mutex::new(None));
+                                        let end_position = Arc::new(Mutex::new(None));
+                                        //println!("Selected area: {:?}, {:?}", (rect.x0, rect.y0), (rect.x1, rect.y1));
+                                        // Crea un thread separato per catturare lo screenshot
+                                        let size= ctx.window().get_size();
+                                        
+                                        let screenshot_thread = thread::spawn(move || {
+                
+                                            
+                                            // Imposta i dati di trascinamento per iniziare la cattura
+                                            let end_position_clone_2 = Arc::clone(&end_position);
+                                            let start_position_clone_3 = Arc::clone(&start_position);
+                                            
+                                            // Cattura uno screenshot.
+                                            let display = Display::primary().expect("couldn't find primary display");
+                                            let (width, height) = (display.width(), display.height());
+                                            //println!("Larghezza display: {:?}, altezza display: {:?}",display.width(),display.height());
+                                            let capturer: Capturer = Capturer::new(display).expect("couldn't begin capture");
+                                            
+                                            let size_clone2= Arc::clone(&size_clone);
+                                            *size_clone2.lock().unwrap()=Some(size);
+                                            
+                                            *start_position_clone_3.lock().unwrap() = Some((rect.x0, rect.y0));
+                                            *end_position_clone_2.lock().unwrap() = Some((rect.x1, rect.y1));
+                                            //println!("Selected area: {:?}, {:?}", (*start_position_clone_3.lock().unwrap()), *end_position_clone_2.lock().unwrap() );
+                                            // Chiama la funzione di cattura screenshot
+                                            //println!("wid: {:?}, {:?}",size.width,size.height);
+                                            
+                                            
+                                            screenshot::screen(format, capturer, width as u32, height as u32, start_position_clone_3, end_position_clone_2,name);
+                                            
+                                });
+                                // Attendi la fine del thread di cattura screenshot
+                                screenshot_thread.join().unwrap();
+                                ctx.request_paint();
+                                
+                                data.is_dragging=false;
+                                data.is_selecting=false;
+                                data.modify=false;
+                                data.is_pressed=true;
+                                data.last_key_event = Some(key_event.clone());
+                                //println!("{:?}",data.last_key_event);
+                                
+                            
+                                
+                                
+                            }
+
+                            }
+                    else {
+                        data.is_pressed=true;
+                        data.last_key_event=Some(key_event.clone());
+                    }
+                    }
+                    else {
                         
-                        if let (Some(start), Some(end)) = (data.start_position, data.end_position) {
-                            data.is_dragging=false;
-                            
-                           
-                            let name= data.label.clone();
-                            let format= data.radio_group;
-                            let size_clone= Arc::new(Mutex::new(None));
-                        
-                             // Calcola il rettangolo selezionato
-                            let rect = druid::Rect::from_points(start, end);
-                            
-                            // Chiama la funzione per catturare lo screenshot
-                            
-                            let start_position = Arc::new(Mutex::new(None));
-                            let end_position = Arc::new(Mutex::new(None));
-                            //println!("Selected area: {:?}, {:?}", (rect.x0, rect.y0), (rect.x1, rect.y1));
-                            // Crea un thread separato per catturare lo screenshot
-                            let size= ctx.window().get_size();
-                            
-                            let screenshot_thread = thread::spawn(move || {
-    
-                                
-                                // Imposta i dati di trascinamento per iniziare la cattura
-                                let end_position_clone_2 = Arc::clone(&end_position);
-                                let start_position_clone_3 = Arc::clone(&start_position);
-                                
-                                // Cattura uno screenshot.
-                                let display = Display::primary().expect("couldn't find primary display");
-                                let (width, height) = (display.width(), display.height());
-                                //println!("Larghezza display: {:?}, altezza display: {:?}",display.width(),display.height());
-                                let capturer: Capturer = Capturer::new(display).expect("couldn't begin capture");
-                                
-                                let size_clone2= Arc::clone(&size_clone);
-                                *size_clone2.lock().unwrap()=Some(size);
-                                
-                                *start_position_clone_3.lock().unwrap() = Some((rect.x0, rect.y0));
-                                *end_position_clone_2.lock().unwrap() = Some((rect.x1, rect.y1));
-                                //println!("Selected area: {:?}, {:?}", (*start_position_clone_3.lock().unwrap()), *end_position_clone_2.lock().unwrap() );
-                                // Chiama la funzione di cattura screenshot
-                                //println!("wid: {:?}, {:?}",size.width,size.height);
-                                
-                                
-                                screenshot::screen(format, capturer, width as u32, height as u32, start_position_clone_3, end_position_clone_2,name);
-                                
-                    });
-                    // Attendi la fine del thread di cattura screenshot
-                    screenshot_thread.join().unwrap();
-                    ctx.request_paint();
-                    
-                    data.is_dragging=false;
-                    data.is_selecting=false;
-                    data.modify=false;
-                    
-                
+                        data.is_pressed=false;
+                        data.last_key_event=None;
+                    }
                     
                     
                 }
-                    }
-                }
+
                Event::WindowCloseRequested => {
                     // Qui puoi gestire l'evento di chiusura della finestra.
                     // Ad esempio, potresti voler salvare i dati dell'applicazione o mostrare un messaggio all'utente.

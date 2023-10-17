@@ -11,6 +11,7 @@ mod screenshot;
 mod drawing_area;
 mod shortkeys_window;
 mod window_format;
+mod function;
 
 fn main() {
 
@@ -46,6 +47,8 @@ fn main() {
         format_window_id: WindowId::next(),
         shortkeys_window_id : WindowId::next(),
         main_window_id: main_window.id,     
+        is_pressed: false,
+        last_key_event: None,
            
         
     };

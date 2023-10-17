@@ -1,13 +1,13 @@
 use druid::widget::{Flex, Label, RadioGroup, TextBox, Button, Controller};
 use druid::{Widget, WidgetExt, WindowDesc, Size, EventCtx, Event, Env, UpdateCtx, LifeCycleCtx, LifeCycle, BoxConstraints, LayoutCtx, PaintCtx};
-use druid_shell::keyboard_types::Key;
+use druid_shell::keyboard_types::{Key,Modifiers};
 use druid_shell::RawMods;
-use druid::HotKey;
 use druid::Event::KeyDown;
-use crate::drawing_area;
+
+use crate::drawing_area::{self, MyHotkey,Action};
 use crate::window_format;
 pub struct AppDataHandler;
-
+use crate::function;
 
 
 struct MyController;
@@ -22,7 +22,14 @@ impl Controller<String, TextBox<String>> for MyController {
         env: &Env,
     ) {
         match event {
-
+            Event::WindowConnected => {
+                if data == "Escape" || data == "Enter" {
+                    ctx.set_disabled(true);
+                } else {
+                    ctx.set_disabled(false);
+                }
+            }
+            
             
             KeyDown(_key_event) => {
                 if data.len()>1{
@@ -33,14 +40,16 @@ impl Controller<String, TextBox<String>> for MyController {
             }
             _ => (),
         }
-        child.event(ctx, event, data, env)
+        child.event(ctx, event,data, env)
     }
+
 }
 
 
 impl Widget<drawing_area::AppData> for AppDataHandler {
     fn event(&mut self, ctx: &mut EventCtx, event: &Event, data: &mut drawing_area::AppData, _env: &Env) {
         match event {
+            
             Event::WindowConnected => {
                 ctx.request_focus()
             },
@@ -53,20 +62,36 @@ impl Widget<drawing_area::AppData> for AppDataHandler {
                 
                 if !data.hotkeys.is_empty()
                 {
-                if data.hotkeys.get(2).unwrap().matches(key_event){
-                    // Chiudi la finestra
+                    for myhotkeys in &data.hotkeys 
                     
-                    ctx.submit_command(druid::commands::QUIT_APP);
-                }
-                
-                if data.hotkeys.get(4).unwrap().matches(key_event){
-                    
-                    ctx.submit_command(druid::commands::HIDE_WINDOW.to(data.format_window_id));
-                    ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.shortkeys_window_id));
-                
-            
-            
-                }
+                    {   match myhotkeys.action 
+
+                        {
+                                Action::Quit => {
+                                    if myhotkeys.matches(key_event.mods,key_event.key.clone())
+                                    {
+                                    // Chiudi la finestra
+                                    
+                                    ctx.submit_command(druid::commands::QUIT_APP);
+                                    }
+                                }
+                            
+                                Action::RestartApp => {
+                                    if myhotkeys.matches(key_event.mods,key_event.key.clone())
+                                    {
+                                        ctx.submit_command(druid::commands::HIDE_WINDOW.to(data.format_window_id));
+                                        ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.shortkeys_window_id));
+                                    }
+                                
+                            
+                        
+                        
+                            }
+                            _=> {
+
+                            }
+                        }
+                    }
                 }
             },
             
@@ -97,41 +122,59 @@ impl Widget<drawing_area::AppData> for AppDataHandler {
 
 pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
     
-    
+   
     let save_image = Flex::row()
         .with_child(Label::new("Save modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()), ("Alt", "Alt".to_string())]).lens(drawing_area::AppData::save_image_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::save_image_modifier))
         .with_child(Label::new("Save Image Key: "))
-        .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::save_image_key));
+        .with_child(
+            TextBox::new().controller(MyController).lens(drawing_area::AppData::save_image_key)
+                .disabled_if(|data, _| data.save_image_modifier=="Escape" || data.save_image_modifier=="Enter"),
+        );
     
 
     let quit_app = Flex::row()
         .with_child(Label::new("Quit modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()), ("Alt", "Alt".to_string())]).lens(drawing_area::AppData::quit_app_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::quit_app_modifier))
         .with_child(Label::new("Quit App Key: "))
-        .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::quit_app_key));
+        .with_child(
+            TextBox::new().controller(MyController).lens(drawing_area::AppData::quit_app_key)
+                .disabled_if(|data, _| data.quit_app_modifier=="Escape" || data.quit_app_modifier=="Enter"),
+        );
 
     let edit_image = Flex::row()
         .with_child(Label::new("Edit modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()), ("Alt", "Alt".to_string())]).lens(drawing_area::AppData::edit_image_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::edit_image_modifier))
         .with_child(Label::new("Edit Image Key: "))
-        .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::edit_image_key));
+        .with_child(
+            TextBox::new().controller(MyController).lens(drawing_area::AppData::edit_image_key)
+                .disabled_if(|data, _| data.edit_image_modifier=="Escape" || data.edit_image_modifier=="Enter"),
+        );
     let cancel_image = Flex::row()
         .with_child(Label::new("Cancel modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()), ("Alt", "Alt".to_string())]).lens(drawing_area::AppData::cancel_image_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::cancel_image_modifier))
         .with_child(Label::new("Cancel Image Key: "))
-        .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::cancel_image_key));
+        .with_child(
+            TextBox::new().controller(MyController).lens(drawing_area::AppData::cancel_image_key)
+            .disabled_if(|data, _| data.cancel_image_modifier=="Escape" || data.cancel_image_modifier=="Enter"),
+        );
 
     let restart = Flex::row()
         .with_child(Label::new("Restart modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()), ("Alt", "Alt".to_string())]).lens(drawing_area::AppData::restart_app_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::restart_app_modifier))
         .with_child(Label::new("Restar Image Key: "))
-        .with_child(TextBox::new().controller(MyController).lens(drawing_area::AppData::restart_app_key));
+        .with_child(
+            TextBox::new().controller(MyController).lens(drawing_area::AppData::restart_app_key)
+                .disabled_if(|data, _| data.restart_app_modifier=="Escape" || data.restart_app_modifier=="Enter"),
+        );
     let choose_format: Flex<drawing_area::AppData> = Flex::row()
         .with_child(Label::new("Rechoose format modifier: "))
-        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string()), ("Alt", "Alt".to_string())]).lens(drawing_area::AppData::restart_format_app_modifier))
+        .with_child(RadioGroup::row(vec![("Ctrl","Ctrl".to_string()), ("Shift","Shift".to_string()),("Escape","Escape".to_string()),("Enter","Enter".to_string())]).lens(drawing_area::AppData::restart_format_app_modifier))
         .with_child(Label::new("Rechoose format Image Key: "))
-        .with_child(TextBox::new().with_placeholder("Inserisci un solo carattere").controller(MyController).lens(drawing_area::AppData::restart_format_app_key));
+        .with_child(
+            TextBox::new().controller(MyController).lens(drawing_area::AppData::restart_format_app_key)
+                .disabled_if(|data, _| data.restart_format_app_modifier=="Escape" || data.restart_format_app_modifier=="Enter"),
+        );
 
 
     let apply_button = Button::new("Apply").on_click(|ctx, data: &mut drawing_area::AppData, _env| {
@@ -142,7 +185,6 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             "Shift" => Some(RawMods::Shift),
             "Escape" => Some(RawMods::None),
             "Enter" => Some(RawMods::Meta),
-            "Alt" => Some(RawMods::Alt),
             _ => None,
         };
         let mut key=data.save_image_key.clone();
@@ -151,77 +193,85 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
        if (save_image_modifier.eq(&Some(RawMods::Ctrl)) && data.save_image_key=="".to_string()) || (save_image_modifier.eq(&Some(RawMods::Shift)) && data.save_image_key=="".to_string()){
             if save_image_modifier.eq(&Some(RawMods::Ctrl))
             {
-                let save_image_hotkey = HotKey::new(None, Key::Control);
+                let save_image_hotkey= MyHotkey { keys: Key::Control, action: Action::Save, mods: Modifiers::empty()};
                 data.hotkeys.push(save_image_hotkey);
             }
             else {
-                let save_image_hotkey = HotKey::new(None, Key::Shift);
+                let save_image_hotkey= MyHotkey { keys: Key::Shift, action: Action::Save , mods: Modifiers::empty()};
                 data.hotkeys.push(save_image_hotkey);
             }
            }
        else if save_image_modifier.eq(&Some(RawMods::Shift)){
             key.make_ascii_uppercase();
-            let save_image_hotkey = HotKey::new(save_image_modifier, Key::Character(key));
+            let save_image_hotkey= MyHotkey { keys: Key::Character(key), action: Action::Save, mods: Modifiers::SHIFT};
             data.hotkeys.push(save_image_hotkey);
 
        }
+       else if save_image_modifier.eq(&Some(RawMods::Ctrl)) {
+        let save_image_hotkey= MyHotkey { keys: Key::Character(key), action: Action::Save, mods: Modifiers::CONTROL };
+        data.hotkeys.push(save_image_hotkey);
+        }
        
        else if save_image_modifier.eq(&Some(RawMods::None))
         {
-        let save_image_hotkey = HotKey::new(None, Key::Escape);
-        data.hotkeys.push(save_image_hotkey);
+            let save_image_hotkey= MyHotkey { keys: Key::Escape, action: Action::Save, mods: Modifiers::empty()};
+            data.hotkeys.push(save_image_hotkey);
 
         }
         else if save_image_modifier.eq(&Some(RawMods::Meta)) {
-            let save_image_hotkey = HotKey::new(None, Key::Enter);
+            let save_image_hotkey= MyHotkey { keys: Key::Enter, action: Action::Save, mods: Modifiers::empty() };
             data.hotkeys.push(save_image_hotkey);
         }
         else 
         {
-            
-        let save_image_hotkey = HotKey::new(save_image_modifier, Key::Character(key));
-        data.hotkeys.push(save_image_hotkey);
+            let save_image_hotkey= MyHotkey { keys: Key::Character(key), action: Action::Save, mods: Modifiers::empty() };
+            data.hotkeys.push(save_image_hotkey);
         }
         let cancel_image_modifier = match data.cancel_image_modifier.as_str() {
             "Ctrl" => Some(RawMods::Ctrl),
             "Shift" => Some(RawMods::Shift),
             "Escape" => Some(RawMods::None),
             "Enter" => Some(RawMods::Meta),
-            "Alt" => Some(RawMods::Alt),
             _ => None,
         };
         let mut key=data.cancel_image_key.clone();
         //println!("{:?}",data.save_image_key);
        if (cancel_image_modifier.eq(&Some(RawMods::Ctrl)) && data.cancel_image_key=="".to_string()) || ((cancel_image_modifier.eq(&Some(RawMods::Shift)) && data.cancel_image_key=="".to_string()) ){
             if cancel_image_modifier.eq(&Some(RawMods::Ctrl)){
-                let cancel_image_hotkey = HotKey::new(None, Key::Control);
+                let cancel_image_hotkey = MyHotkey {keys: Key::Control, action: Action::Cancel, mods: Modifiers::empty()};
                 data.hotkeys.push(cancel_image_hotkey);
             }
             else {
-                let cancel_image_hotkey = HotKey::new(None, Key::Shift);
+                let cancel_image_hotkey = MyHotkey {keys: Key::Shift, action: Action::Cancel,  mods: Modifiers::empty()};
                 data.hotkeys.push(cancel_image_hotkey);
             }
            }
        else if cancel_image_modifier.eq(&Some(RawMods::Shift)){
             key.make_ascii_uppercase();
-            let cancel_image_hotkey = HotKey::new(cancel_image_modifier, Key::Character(key));
+            let cancel_image_hotkey = MyHotkey {keys: Key::Character(key), action: Action::Cancel, mods:Modifiers::SHIFT};
             data.hotkeys.push(cancel_image_hotkey);
 
        }
+       else if cancel_image_modifier.eq(&Some(RawMods::Ctrl)){
+        
+        let cancel_image_hotkey = MyHotkey {keys: Key::Character(key), action: Action::Cancel, mods:Modifiers::CONTROL};
+        data.hotkeys.push(cancel_image_hotkey);
+
+   }
        
        else if cancel_image_modifier.eq(&Some(RawMods::None))
         {
-        let cancel_image_hotkey = HotKey::new(None, Key::Escape);
-        data.hotkeys.push(cancel_image_hotkey);
+            let cancel_image_hotkey = MyHotkey {keys: Key::Escape, action: Action::Cancel, mods: Modifiers::empty()};
+            data.hotkeys.push(cancel_image_hotkey);
 
         }
         else if cancel_image_modifier.eq(&Some(RawMods::Meta)) {
-            let cancel_image_hotkey = HotKey::new(None, Key::Enter);
+            let cancel_image_hotkey = MyHotkey {keys: Key::Enter, action: Action::Cancel, mods: Modifiers::empty()};
             data.hotkeys.push(cancel_image_hotkey);
         }
         else 
         {
-        let cancel_image_hotkey = HotKey::new(cancel_image_modifier, Key::Character(key));
+        let cancel_image_hotkey = MyHotkey {keys: Key::Character(key), action: Action::Cancel, mods: Modifiers::empty()};
         data.hotkeys.push(cancel_image_hotkey);
         }
         //println!("key: {:?}", key);
@@ -233,7 +283,6 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             "Shift" => Some(RawMods::Shift),
             "Escape" => Some(RawMods::None),
             "Enter" => Some(RawMods::Meta),
-            "Alt" => Some(RawMods::Alt),
             _ => None,
         };
         //let _quit_app_hotkey = HotKey::new(quit_app_modifier, key);
@@ -242,37 +291,43 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
        if( quit_app_modifier.eq(&Some(RawMods::Ctrl)) && data.quit_app_key=="".to_string()) || (quit_app_modifier.eq(&Some(RawMods::Shift)) && data.quit_app_key=="".to_string()){
             if quit_app_modifier.eq(&Some(RawMods::Ctrl))
             {
-                let quit_image_hotkey = HotKey::new(None, Key::Control);
+                let quit_image_hotkey = MyHotkey {keys: Key::Control, action: Action::Quit, mods: Modifiers::empty()};
                 data.hotkeys.push(quit_image_hotkey);
             }
             else {
-                let quit_image_hotkey = HotKey::new(None, Key::Shift);
+                let quit_image_hotkey = MyHotkey {keys: Key::Shift, action: Action::Quit, mods: Modifiers::empty()};
                 data.hotkeys.push(quit_image_hotkey);
             }
            }
        else if quit_app_modifier.eq(&Some(RawMods::Shift)){
             
             key.make_ascii_uppercase();
-            let quit_image_hotkey = HotKey::new(quit_app_modifier, Key::Character(key));
+            let quit_image_hotkey = MyHotkey {keys: Key::Character(key), action: Action::Quit, mods: Modifiers::SHIFT};
             data.hotkeys.push(quit_image_hotkey);
 
        }
-       
+       else if quit_app_modifier.eq(&Some(RawMods::Ctrl)){
+            
+        
+        let quit_image_hotkey = MyHotkey {keys: Key::Character(key), action: Action::Quit, mods: Modifiers::CONTROL};
+        data.hotkeys.push(quit_image_hotkey);
+
+   }
        else if quit_app_modifier.eq(&Some(RawMods::None))
         {
-        let quit_image_hotkey = HotKey::new(None, Key::Escape);
-        data.hotkeys.push(quit_image_hotkey);
+            let quit_image_hotkey = MyHotkey {keys: Key::Escape, action: Action::Quit, mods: Modifiers::empty()};
+            data.hotkeys.push(quit_image_hotkey);
 
         }
         else if quit_app_modifier.eq(&Some(RawMods::Meta)) {
-            let quit_image_hotkey = HotKey::new(None, Key::Enter);
+            let quit_image_hotkey = MyHotkey {keys: Key::Enter, action: Action::Quit, mods: Modifiers::empty()};
             data.hotkeys.push(quit_image_hotkey);
         }
         else 
         {
             
-        let quit_image_hotkey = HotKey::new(quit_app_modifier, Key::Character(key));
-        data.hotkeys.push(quit_image_hotkey);
+            let quit_image_hotkey = MyHotkey {keys: Key::Character(key), action: Action::Quit, mods: Modifiers::empty()};
+            data.hotkeys.push(quit_image_hotkey);
         }
         
         let edit_image_modifier = match data.edit_image_modifier.as_str() {
@@ -280,7 +335,6 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             "Shift" => Some(RawMods::Shift),
             "Escape" => Some(RawMods::None),
             "Enter" => Some(RawMods::Meta),
-            "Alt" => Some(RawMods::Alt),
             _ => None,
         };
         
@@ -288,34 +342,40 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
         
       if (edit_image_modifier.eq(&Some(RawMods::Ctrl)) && data.edit_image_key=="".to_string()) || (edit_image_modifier.eq(&Some(RawMods::Shift)) && data.edit_image_key=="".to_string()) {
             if edit_image_modifier.eq(&Some(RawMods::Ctrl)){
-                let edit_image_hotkey = HotKey::new(None, Key::Control);
+                let edit_image_hotkey = MyHotkey {keys: Key::Control, action: Action::Edit, mods:Modifiers::empty()};
                 data.hotkeys.push(edit_image_hotkey);
             }
             else {
-                let edit_image_hotkey = HotKey::new(None, Key::Shift);
+                let edit_image_hotkey = MyHotkey {keys: Key::Shift, action: Action::Edit, mods:Modifiers::empty()};
                 data.hotkeys.push(edit_image_hotkey);
             }
            }
        else if edit_image_modifier.eq(&Some(RawMods::Shift)){
             key.make_ascii_uppercase();
-            let edit_image_hotkey = HotKey::new(edit_image_modifier, Key::Character(key));
+            let edit_image_hotkey = MyHotkey {keys: Key::Character(key), action: Action::Edit, mods:Modifiers::SHIFT};
             data.hotkeys.push(edit_image_hotkey);
 
        }
+       else if edit_image_modifier.eq(&Some(RawMods::Ctrl)){
+       
+        let edit_image_hotkey = MyHotkey {keys: Key::Character(key), action: Action::Edit, mods:Modifiers::CONTROL};
+        data.hotkeys.push(edit_image_hotkey);
+
+   }
       
        else if edit_image_modifier.eq(&Some(RawMods::Meta)) {
-            let edit_image_hotkey = HotKey::new(None, Key::Enter);
+            let edit_image_hotkey = MyHotkey {keys: Key::Enter, action: Action::Edit, mods:Modifiers::empty()};
             data.hotkeys.push(edit_image_hotkey);
         }
        else if edit_image_modifier.eq(&Some(RawMods::None))
         {
-            let edit_image_hotkey = HotKey::new(None, Key::Escape);
+            let edit_image_hotkey = MyHotkey {keys: Key::Escape, action: Action::Edit, mods:Modifiers::empty()};
             data.hotkeys.push(edit_image_hotkey);
 
         }
         else 
         {
-            let edit_image_hotkey = HotKey::new(edit_image_modifier, Key::Character(key));
+            let edit_image_hotkey = MyHotkey {keys: Key::Character(key), action: Action::Edit,mods: Modifiers::empty()};
             data.hotkeys.push(edit_image_hotkey);
         }
         let restart_app_modifier = match data.restart_app_modifier.as_str() {
@@ -323,7 +383,6 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             "Shift" => Some(RawMods::Shift),
             "Escape" => Some(RawMods::None),
             "Enter" => Some(RawMods::Meta),
-            "Alt" => Some(RawMods::Alt),
             _ => None,
         };
         let mut key=data.restart_app_key.clone();
@@ -331,36 +390,41 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
        if (restart_app_modifier.eq(&Some(RawMods::Ctrl)) && data.restart_app_key=="".to_string()) || (restart_app_modifier.eq(&Some(RawMods::Shift)) && data.restart_app_key=="".to_string()){
             if restart_app_modifier.eq(&Some(RawMods::Ctrl))
             {
-                let restart_app_hotkey = HotKey::new(None, Key::Control);
+                let restart_app_hotkey = MyHotkey {keys: Key::Control, action: Action::RestartApp, mods:Modifiers::empty()};
                 data.hotkeys.push(restart_app_hotkey);
             }
             else {
-                let restart_app_hotkey = HotKey::new(None, Key::Shift);
+                let restart_app_hotkey = MyHotkey {keys: Key::Shift, action: Action::RestartApp, mods:Modifiers::empty()};
                 data.hotkeys.push(restart_app_hotkey);
             }
            }
        else if restart_app_modifier.eq(&Some(RawMods::Shift)){
             key.make_ascii_uppercase();
-            let restart_app_hotkey = HotKey::new(restart_app_modifier, Key::Character(key));
+            let restart_app_hotkey = MyHotkey {keys: Key::Character(key), action: Action::RestartApp, mods:Modifiers::SHIFT};
             data.hotkeys.push(restart_app_hotkey);
 
        }
-       
+       else if restart_app_modifier.eq(&Some(RawMods::Ctrl)){
+        
+        let restart_app_hotkey = MyHotkey {keys: Key::Character(key), action: Action::RestartApp, mods:Modifiers::CONTROL};
+        data.hotkeys.push(restart_app_hotkey);
+
+   }
        else if restart_app_modifier.eq(&Some(RawMods::None))
         {
-        let restart_app_hotkey = HotKey::new(None, Key::Escape);
+            let restart_app_hotkey = MyHotkey {keys: Key::Escape, action: Action::RestartApp, mods:Modifiers::empty()};
         data.hotkeys.push(restart_app_hotkey);
 
         }
         else if restart_app_modifier.eq(&Some(RawMods::Meta)) {
-            let restart_app_hotkey = HotKey::new(None, Key::Enter);
+            let restart_app_hotkey = MyHotkey {keys: Key::Enter, action: Action::RestartApp, mods:Modifiers::empty()};
             data.hotkeys.push(restart_app_hotkey);
         }
         else 
         {
             
-        let restart_app_hotkey = HotKey::new(restart_app_modifier, Key::Character(key));
-        data.hotkeys.push(restart_app_hotkey);
+            let restart_app_hotkey = MyHotkey {keys: Key::Character(key), action: Action::RestartApp, mods: Modifiers::empty()};
+            data.hotkeys.push(restart_app_hotkey);
         }
         
         let restart_format_app_modifier = match data.restart_format_app_modifier.as_str() {
@@ -368,7 +432,6 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             "Shift" => Some(RawMods::Shift),
             "Escape" => Some(RawMods::None),
             "Enter" => Some(RawMods::Meta),
-            "Alt" => Some(RawMods::Alt),
             _ => None,
         };
         let mut key=data.restart_format_app_key.clone();
@@ -376,36 +439,42 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
        if (restart_format_app_modifier.eq(&Some(RawMods::Ctrl)) && data.restart_format_app_key=="".to_string()) || (restart_format_app_modifier.eq(&Some(RawMods::Shift)) && data.restart_format_app_key=="".to_string()){
             if restart_format_app_modifier.eq(&Some(RawMods::Ctrl))
             {
-                let restart_format_app_hotkey = HotKey::new(None, Key::Control);
+                let restart_format_app_hotkey = MyHotkey {keys: Key::Control, action: Action::RestartFormat, mods:Modifiers::empty()};
                 data.hotkeys.push(restart_format_app_hotkey);
             }
             else {
-                let restart_format_app_hotkey = HotKey::new(None, Key::Shift);
+
+                let restart_format_app_hotkey = MyHotkey {keys: Key::Shift, action: Action::RestartFormat,mods:Modifiers::empty()};
                 data.hotkeys.push(restart_format_app_hotkey);
             }
            }
        else if restart_format_app_modifier.eq(&Some(RawMods::Shift)){
             key.make_ascii_uppercase();
-            let restart_format_app_hotkey = HotKey::new(restart_format_app_modifier, Key::Character(key));
+            let restart_format_app_hotkey = MyHotkey {keys: Key::Character(key), action: Action::RestartFormat,mods:Modifiers::SHIFT};
             data.hotkeys.push(restart_format_app_hotkey);
 
        }
-       
+       else if restart_format_app_modifier.eq(&Some(RawMods::Ctrl)){
+        
+        let restart_format_app_hotkey = MyHotkey {keys: Key::Character(key), action: Action::RestartFormat,mods:Modifiers::CONTROL};
+        data.hotkeys.push(restart_format_app_hotkey);
+
+   }
        else if restart_format_app_modifier.eq(&Some(RawMods::None))
         {
-        let restart_format_app_hotkey = HotKey::new(None, Key::Escape);
-        data.hotkeys.push(restart_format_app_hotkey);
+            let restart_format_app_hotkey = MyHotkey {keys: Key::Escape, action: Action::RestartFormat, mods:Modifiers::empty()};
+            data.hotkeys.push(restart_format_app_hotkey);
 
         }
         else if restart_format_app_modifier.eq(&Some(RawMods::Meta)) {
-            let restart_format_app_hotkey = HotKey::new(None, Key::Enter);
+            let restart_format_app_hotkey = MyHotkey {keys: Key::Enter, action: Action::RestartFormat, mods:Modifiers::empty()};
             data.hotkeys.push(restart_format_app_hotkey);
         }
         else 
         {
             
-        let restart_format_app_hotkey = HotKey::new(restart_format_app_modifier, Key::Character(key));
-        data.hotkeys.push(restart_format_app_hotkey);
+            let restart_format_app_hotkey = MyHotkey {keys: Key::Character(key), action: Action::RestartFormat,mods: Modifiers::empty()};
+            data.hotkeys.push(restart_format_app_hotkey);
         }
         
 
@@ -415,12 +484,12 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                         .set_always_on_top(true);
                         
                     
-       if are_all_fields_completed(data) && !some_fields_are_equal(data)
+       if function::are_all_fields_completed(data) && !function::some_fields_are_equal(data)
             {
                 data.format_window_id= format_window.id;
                 data.shortkeys_window_id= ctx.window_id();
                 let id= format_window.id;
-            
+                //data.hotkeys.sort_by(|a, b| b.len().cmp(&a.len()));
                 ctx.new_window(format_window);
                 ctx.submit_command(druid::commands::HIDE_WINDOW.to(ctx.window_id()));
                 ctx.submit_command(druid::commands::SHOW_WINDOW.to(id));
@@ -431,7 +500,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
 
     });
     let errore = Label::new(|data: &drawing_area::AppData, _env: &Env| {
-        if are_all_fields_completed(data) {
+        if function::are_all_fields_completed(data) {
             "".to_string()
         } else {
             "Per favore, compila tutti i campi.".to_string()
@@ -439,7 +508,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
         
     });
     let errore_field = Label::new(|data: &drawing_area::AppData,_env: &Env| {
-        if some_fields_are_equal(data) {
+        if function::some_fields_are_equal(data) {
             
             "Stesse shortkeys non sono ammesse".to_string()
         }
@@ -462,42 +531,6 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
         
 }
 
-fn are_all_fields_completed(data: &drawing_area::AppData) -> bool {
-    
-    if (data.save_image_modifier!="None".to_string() || data.save_image_key!="".to_string()) && (data.edit_image_modifier!="None".to_string() || data.edit_image_key!="".to_string()) 
-    && (data.quit_app_key!="".to_string() || data.quit_app_modifier!="None".to_string()) && (data.cancel_image_key!="".to_string() || data.cancel_image_modifier!="None".to_string()) 
-    && (data.restart_app_modifier!="None".to_string() || data.restart_app_key!="".to_string()) && (data.restart_format_app_modifier!="None".to_string() || data.restart_format_app_key!="".to_string()) 
-    {
-        
-        true
-    }
-    else 
-    {
-            false
-    }
-}
 
-fn some_fields_are_equal(data: &drawing_area::AppData) -> bool {
-    if (data.cancel_image_modifier == data.save_image_modifier && data.cancel_image_key == data.save_image_key ) 
-    || (data.cancel_image_modifier == data.restart_app_modifier && data.cancel_image_key == data.restart_app_key ) ||
-    (data.cancel_image_modifier == data.restart_format_app_modifier && data.cancel_image_key == data.restart_format_app_key ) ||
-    (data.cancel_image_modifier == data.edit_image_modifier && data.cancel_image_key == data.edit_image_key) || 
-    (data.cancel_image_modifier == data.quit_app_modifier && data.cancel_image_key == data.quit_app_modifier ) ||
-    (data.save_image_modifier == data.quit_app_modifier && data.save_image_key == data.quit_app_modifier ) ||
-    (data.save_image_modifier == data.restart_format_app_modifier && data.save_image_key == data.restart_format_app_key ) ||
-    (data.save_image_modifier == data.restart_app_modifier && data.save_image_key == data.restart_app_key ) ||
-    (data.save_image_modifier == data.edit_image_modifier && data.save_image_key == data.edit_image_key ) ||
-    (data.quit_app_modifier == data.edit_image_modifier && data.quit_app_key == data.edit_image_key ) || 
-    (data.quit_app_modifier == data.restart_app_modifier && data.quit_app_key == data.restart_app_key ) ||
-    (data.quit_app_modifier == data.restart_format_app_modifier && data.quit_app_key == data.restart_format_app_key ) ||
-    (data.edit_image_modifier == data.restart_app_modifier && data.edit_image_key == data.restart_app_key ) ||
-    (data.restart_app_modifier == data.restart_format_app_modifier && data.restart_app_key == data.restart_format_app_key ) ||
-    (data.edit_image_modifier == data.restart_format_app_modifier && data.edit_image_key == data.restart_format_app_key )
-    {
-        true
-    }
-    else {
-        false
-    }
-}
+
 
