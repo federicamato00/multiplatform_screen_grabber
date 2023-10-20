@@ -1,18 +1,14 @@
-use image::{DynamicImage, ImageBuffer, Rgba};
+use crate::MyRadio;
+use image::{ImageBuffer, Rgba};
 use scrap::Capturer;
 use screenshots::{self, Screen};
-use std::env;
 use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Duration;
-
-use crate::MyRadio;
 
 pub fn screen(
     format: MyRadio,
-    mut capturer: Capturer,
-    width: u32,
-    height: u32,
+    mut _capturer: Capturer,
+    _width: u32,
+    _height: u32,
     start_position: Arc<Mutex<Option<(f64, f64)>>>,
     end_position: Arc<Mutex<Option<(f64, f64)>>>,
     name: String,

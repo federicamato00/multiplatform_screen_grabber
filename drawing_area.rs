@@ -127,6 +127,7 @@ impl MyHotkey {
         all_keys_pressed && all_mod_pressed
     }
 }
+
 struct DrawingArea;
 impl Widget<AppData> for DrawingArea {
     fn event(&mut self, ctx: &mut EventCtx, event: &druid::Event, data: &mut AppData, _env: &Env) {
@@ -134,9 +135,10 @@ impl Widget<AppData> for DrawingArea {
         //println!("{:?}", event);
         match event {
             Event::WindowConnected => {
+                println!("ciao2");
                 // Richiedi il focus quando la finestra è connessa.
                 data.main_window_id = ctx.window_id();
-
+                if data.modify == false {}
                 // Imposta la dimensione della finestra
                 let display_primary = Display::primary().expect("couldn't find primary display");
                 let size = Size::new(
@@ -206,7 +208,8 @@ impl Widget<AppData> for DrawingArea {
             //                 .unwrap()
             //                 .matches(key_event.mods, key_event.key.clone())
             //                 && data.is_pressed != true
-            //             {//                 data.start_position = None;
+            //             {
+            //                 data.start_position = None;
             //                 data.end_position = None;
             //                 data.start_position_to_display = None;
             //                 data.end_position_to_display = None;
@@ -253,6 +256,7 @@ impl Widget<AppData> for DrawingArea {
                 // Ad esempio, potresti voler salvare i dati dell'applicazione o mostrare un messaggio all'utente.
                 ctx.submit_command(druid::commands::QUIT_APP);
             }
+
             druid::Event::MouseDown(mouse_event) => {
                 if data.modify == true && data.is_dragging == false {
                     data.start_position = None;
@@ -302,12 +306,13 @@ impl Widget<AppData> for DrawingArea {
                         }
 
                         //println!("Click su pos: {:?}",mouse_event.pos);
-                        // println!("Click su window_pos: {:?}",mouse_event.window_pos);data.is_selecting = true;
+                        // println!("Click su window_pos: {:?}",mouse_event.window_pos);
+
+                        data.is_selecting = true;
                     }
                 }
-
                 if data.is_dragging == true {
-                    //println!("ciao {:?}",(mouse_event.pos - Point::new(data.rect.x0, data.rect.y1)).hypot());
+                    //println!("{:?}",(mouse_event.pos - data.rect.origin()).hypot());
                     if (mouse_event.pos - data.rect.origin()).hypot() < 70.0 {
                         ctx.set_cursor(&druid::Cursor::ResizeUpDown);
                         data.where_dragging = Some(DragHandle::TopLeft);
@@ -389,6 +394,11 @@ impl Widget<AppData> for DrawingArea {
                             });
                             data.end_position = Some(coord);
                         }
+
+                        // questa parte qua bisogna implementarla anche per il caso os="windows" tenendo conto che per quel caso
+                        // data.start_position_to_display corrispondono ai dati non fattorizzati e così anche per end_position
+                        // da considerare anche che pos per macos corrisponde alla fattorizzazione che con windows si fa con il fattore scala
+                        // per cui coord bisogna adeguarlo con i dati fattorizzati con scale_factor_x
                         if ctx.is_active() {
                             if let Some(handle) = &data.where_dragging.clone() {
                                 let pos = ctx.to_screen(druid::Point::new(
@@ -556,6 +566,7 @@ impl Widget<AppData> for DrawingArea {
             _ => Size::ZERO,
         }
     }
+
     fn paint(&mut self, paint_ctx: &mut PaintCtx, data: &AppData, _env: &Env) {
         if let Some(_start) = data.start_position {
             if let Some(_end) = data.end_position {
@@ -619,6 +630,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.is_pressed = false;
                     }
                 }
+
                 if data.is_pressed != true {
                     if data
                         .hotkeys
@@ -660,11 +672,16 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         && !data.is_pressed
                     {
                         //sto modificando
-                        if data.start_position != None && data.end_position != None {
-                            // Calculate the selected rectangle
-                            data.is_dragging = true;
-                            data.is_selecting = true;
-
+                        if data.start_position != Some(Point { x: 0., y: 0. })
+                            && data.end_position != Some(Point { x: 0., y: 0. })
+                        {
+                            if let (Some(_start), Some(_end)) =
+                                (data.start_position, data.end_position)
+                            {
+                                // Calculate the selected rectangle
+                                data.is_dragging = true;
+                                data.is_selecting = true;
+                            }
                             data.is_pressed = true;
                             data.hide_buttons = true;
                             data.last_key_event = Some(key_event.clone());
@@ -717,7 +734,11 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         .matches(key_event.mods, key_event.key.clone())
                         && !data.is_pressed
                     {
-                        if data.start_position != None && data.end_position != None {
+                        if data.start_position != None
+                            && data.end_position != None
+                            && data.start_position != Some(Point::new(0., 0.))
+                            && data.end_position != Some(Point { x: 0., y: 0. })
+                        {
                             data.hide_buttons = true;
                             data.save = true;
                             //function::save_screen(data, ctx.size());
@@ -740,6 +761,21 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
         }
         child.event(ctx, event, data, env);
     }
+    // fn lifecycle(
+    //     &mut self,
+    //     _child: &mut W,
+    //     ctx: &mut druid::LifeCycleCtx,
+    //     event: &druid::LifeCycle,
+    //     data: &AppData,
+    //     env: &Env,
+    // ) {
+    //     // match event {
+    //     //     druid::LifeCycle::ViewContextChanged(_) => {
+    //     //         if()
+    //     //     }
+    //     //     _ => {}
+    //     // }
+    // }
 }
 pub(crate) fn build_ui() -> impl Widget<AppData> {
     let skip_panel = ViewSwitcher::new(
@@ -833,7 +869,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                             "Per uscire dalla modalità edit, premi fuori dall'area disegnata",
                         )),
                 )
-                .background(BackgroundBrush::Color(Color::TRANSPARENT))
+                .background(BackgroundBrush::Color(Color::BLACK))
                 .fix_size(
                     Display::primary().expect("erro").width() as f64,
                     Display::primary().expect("erro").height() as f64,
