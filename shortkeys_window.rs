@@ -1,16 +1,12 @@
 use druid::widget::{Button, Controller, Flex, Label, RadioGroup, TextBox};
 use druid::Event::KeyDown;
-use druid::{
-    BoxConstraints, Env, Event, EventCtx, LayoutCtx, LifeCycle, LifeCycleCtx, PaintCtx, Size,
-    UpdateCtx, Widget, WidgetExt, WindowDesc,
-};
+use druid::{Env, Event, EventCtx, Size, Widget, WidgetExt, WindowDesc};
 use druid_shell::keyboard_types::{Key, Modifiers};
 use druid_shell::RawMods;
 
 use crate::drawing_area::{self, Action, MyHotkey};
-use crate::window_format;
-pub struct AppDataHandler;
 use crate::function;
+use crate::window_format;
 
 struct MyController;
 
@@ -41,86 +37,6 @@ impl Controller<String, TextBox<String>> for MyController {
         }
         child.event(ctx, event, data, env)
     }
-}
-
-impl Widget<drawing_area::AppData> for AppDataHandler {
-    fn event(
-        &mut self,
-        ctx: &mut EventCtx,
-        event: &Event,
-        data: &mut drawing_area::AppData,
-        _env: &Env,
-    ) {
-        match event {
-            Event::WindowConnected => ctx.request_focus(),
-            Event::WindowCloseRequested => {
-                ctx.submit_command(druid::commands::QUIT_APP);
-            }
-
-            Event::KeyUp(key_event) => {
-                if !data.hotkeys.is_empty() {
-                    for myhotkeys in &data.hotkeys {
-                        match myhotkeys.action {
-                            Action::Quit => {
-                                if myhotkeys.matches(key_event.mods, key_event.key.clone()) {
-                                    // Chiudi la finestra
-
-                                    ctx.submit_command(druid::commands::QUIT_APP);
-                                }
-                            }
-
-                            Action::RestartApp => {
-                                if myhotkeys.matches(key_event.mods, key_event.key.clone()) {
-                                    ctx.submit_command(
-                                        druid::commands::HIDE_WINDOW.to(data.format_window_id),
-                                    );
-                                    ctx.submit_command(
-                                        druid::commands::SHOW_WINDOW.to(data.shortkeys_window_id),
-                                    );
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-            }
-
-            _ => {}
-        }
-    }
-
-    fn lifecycle(
-        &mut self,
-        _ctx: &mut LifeCycleCtx,
-        _eventt: &LifeCycle,
-        _data: &drawing_area::AppData,
-        _env: &Env,
-    ) {
-    }
-
-    fn update(
-        &mut self,
-        _ctx: &mut UpdateCtx,
-        _old_data: &drawing_area::AppData,
-        _data: &drawing_area::AppData,
-        _env: &Env,
-    ) {
-    }
-
-    fn layout(
-        &mut self,
-        ctx: &mut LayoutCtx,
-        _bc: &BoxConstraints,
-        _data: &drawing_area::AppData,
-        _env: &Env,
-    ) -> Size {
-        Size::new(
-            ctx.window().get_size().width,
-            ctx.window().get_size().height,
-        )
-    }
-
-    fn paint(&mut self, _ctx: &mut PaintCtx, _data: &drawing_area::AppData, _env: &Env) {}
 }
 
 pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
@@ -753,5 +669,4 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
         .with_child(restart)
         .with_child(choose_format)
         .with_child(apply_button)
-        .with_child(AppDataHandler)
 }

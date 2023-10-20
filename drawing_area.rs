@@ -127,7 +127,6 @@ impl MyHotkey {
         all_keys_pressed && all_mod_pressed
     }
 }
-
 struct DrawingArea;
 impl Widget<AppData> for DrawingArea {
     fn event(&mut self, ctx: &mut EventCtx, event: &druid::Event, data: &mut AppData, _env: &Env) {
@@ -135,10 +134,9 @@ impl Widget<AppData> for DrawingArea {
         //println!("{:?}", event);
         match event {
             Event::WindowConnected => {
-                println!("ciao2");
                 // Richiedi il focus quando la finestra è connessa.
                 data.main_window_id = ctx.window_id();
-                if data.modify == false {}
+
                 // Imposta la dimensione della finestra
                 let display_primary = Display::primary().expect("couldn't find primary display");
                 let size = Size::new(
@@ -208,8 +206,7 @@ impl Widget<AppData> for DrawingArea {
             //                 .unwrap()
             //                 .matches(key_event.mods, key_event.key.clone())
             //                 && data.is_pressed != true
-            //             {
-            //                 data.start_position = None;
+            //             {//                 data.start_position = None;
             //                 data.end_position = None;
             //                 data.start_position_to_display = None;
             //                 data.end_position_to_display = None;
@@ -256,7 +253,6 @@ impl Widget<AppData> for DrawingArea {
                 // Ad esempio, potresti voler salvare i dati dell'applicazione o mostrare un messaggio all'utente.
                 ctx.submit_command(druid::commands::QUIT_APP);
             }
-
             druid::Event::MouseDown(mouse_event) => {
                 if data.modify == true && data.is_dragging == false {
                     data.start_position = None;
@@ -280,6 +276,10 @@ impl Widget<AppData> for DrawingArea {
                                     x: mouse_event.pos.x * scale_factor_x,
                                     y: mouse_event.pos.y * scale_factor_y,
                                 };
+                                data.start_position_to_display = Some(druid::Point {
+                                    x: mouse_event.pos.x,
+                                    y: mouse_event.pos.y,
+                                });
                                 data.start_position = Some(coord);
                             }
                             "macos" => {
@@ -302,13 +302,12 @@ impl Widget<AppData> for DrawingArea {
                         }
 
                         //println!("Click su pos: {:?}",mouse_event.pos);
-                        // println!("Click su window_pos: {:?}",mouse_event.window_pos);
-
-                        data.is_selecting = true;
+                        // println!("Click su window_pos: {:?}",mouse_event.window_pos);data.is_selecting = true;
                     }
                 }
+
                 if data.is_dragging == true {
-                    //println!("{:?}",(mouse_event.pos - data.rect.origin()).hypot());
+                    //println!("ciao {:?}",(mouse_event.pos - Point::new(data.rect.x0, data.rect.y1)).hypot());
                     if (mouse_event.pos - data.rect.origin()).hypot() < 70.0 {
                         ctx.set_cursor(&druid::Cursor::ResizeUpDown);
                         data.where_dragging = Some(DragHandle::TopLeft);
@@ -345,13 +344,35 @@ impl Widget<AppData> for DrawingArea {
                 let os = env::consts::OS;
                 match os {
                     "windows" => {
-                        let scale_factor_x = ctx.window().get_scale().unwrap().x();
-                        let scale_factor_y = ctx.window().get_scale().unwrap().y();
-                        let coord = druid::Point {
-                            x: mouse_event.pos.x * scale_factor_x,
-                            y: mouse_event.pos.y * scale_factor_y,
-                        };
-                        data.end_position = Some(coord);
+                        if ctx.is_active() == false
+                            && data.is_dragging == false
+                            && data.save != true
+                        {
+                            let scale_factor_x = ctx.window().get_scale().unwrap().x();
+                            let scale_factor_y = ctx.window().get_scale().unwrap().y();
+                            let coord = druid::Point {
+                                x: mouse_event.pos.x * scale_factor_x,
+                                y: mouse_event.pos.y * scale_factor_y,
+                            };
+                            data.end_position_to_display = Some(druid::Point {
+                                x: mouse_event.pos.x,
+                                y: mouse_event.pos.y,
+                            });
+                            data.end_position = Some(coord);
+                        }
+                        if ctx.is_active() {
+                            if let Some(handle) = &data.where_dragging.clone() {
+                                // let scale_factor_x = ctx.window().get_scale().unwrap().x();
+                                // let scale_factor_y = ctx.window().get_scale().unwrap().y();
+                                let coord = druid::Point {
+                                    x: mouse_event.pos.x,
+                                    y: mouse_event.pos.y,
+                                };
+
+                                function::edit_rect(handle, coord, data, mouse_event);
+                                ctx.request_paint();
+                            }
+                        }
                     }
                     "macos" => {
                         if ctx.is_active() == false
@@ -368,11 +389,6 @@ impl Widget<AppData> for DrawingArea {
                             });
                             data.end_position = Some(coord);
                         }
-
-                        // questa parte qua bisogna implementarla anche per il caso os="windows" tenendo conto che per quel caso
-                        // data.start_position_to_display corrispondono ai dati non fattorizzati e così anche per end_position
-                        // da considerare anche che pos per macos corrisponde alla fattorizzazione che con windows si fa con il fattore scala
-                        // per cui coord bisogna adeguarlo con i dati fattorizzati con scale_factor_x
                         if ctx.is_active() {
                             if let Some(handle) = &data.where_dragging.clone() {
                                 let pos = ctx.to_screen(druid::Point::new(
@@ -422,10 +438,26 @@ impl Widget<AppData> for DrawingArea {
                                     x: mouse_event.pos.x * scale_factor_x,
                                     y: mouse_event.pos.y * scale_factor_y,
                                 };
-                                data.end_position = Some(coord);
+                                data.end_position_to_display = Some(druid::Point {
+                                    x: mouse_event.pos.x,
+                                    y: mouse_event.pos.y,
+                                });
+                                if coord.x < data.start_position.unwrap().x
+                                    && coord.y < data.start_position.unwrap().y
+                                {
+                                    let prov = data.start_position;
+                                    data.start_position = Some(coord);
+                                    data.end_position = prov;
+                                    let prov_display = data.start_position_to_display;
+                                    data.start_position_to_display = data.end_position_to_display;
+                                    data.end_position_to_display = prov_display;
+                                } else {
+                                    data.end_position = Some(coord);
+                                }
+
                                 data.rect = druid::Rect::from_points(
-                                    data.start_position.unwrap(),
-                                    data.end_position.unwrap(),
+                                    data.start_position_to_display.unwrap(),
+                                    data.end_position_to_display.unwrap(),
                                 );
                             }
                             _ => {
@@ -440,7 +472,18 @@ impl Widget<AppData> for DrawingArea {
                                     x: mouse_event.pos.x,
                                     y: mouse_event.pos.y,
                                 });
-                                data.end_position = Some(coord);
+                                if coord.x < data.start_position.unwrap().x
+                                    && coord.y < data.start_position.unwrap().y
+                                {
+                                    let prov = data.start_position;
+                                    data.start_position = Some(coord);
+                                    data.end_position = prov;
+                                    let prov_display = data.start_position_to_display;
+                                    data.start_position_to_display = data.end_position_to_display;
+                                    data.end_position_to_display = prov_display;
+                                } else {
+                                    data.end_position = Some(coord);
+                                }
                                 data.rect = druid::Rect::from_points(
                                     data.start_position.unwrap(),
                                     data.end_position.unwrap(),
@@ -513,28 +556,16 @@ impl Widget<AppData> for DrawingArea {
             _ => Size::ZERO,
         }
     }
-
     fn paint(&mut self, paint_ctx: &mut PaintCtx, data: &AppData, _env: &Env) {
-        let scale_factor_x = paint_ctx.window().get_scale().unwrap().x();
-        let scale_factor_y = paint_ctx.window().get_scale().unwrap().y();
-        // println!("{:?}", data.start_position);
-        // println!("{:?}", data.end_position);
-
-        if let Some(start) = data.start_position {
-            if let Some(end) = data.end_position {
+        if let Some(_start) = data.start_position {
+            if let Some(_end) = data.end_position {
                 if data.is_selecting == true {
                     let os = env::consts::OS;
                     match os {
                         "windows" => {
-                            let start_descaled = druid::Point {
-                                x: start.x / scale_factor_x,
-                                y: start.y / scale_factor_y,
-                            };
-                            let end_descaled = druid::Point {
-                                x: end.x / scale_factor_x,
-                                y: end.y / scale_factor_y,
-                            };
-                            let rect = druid::Rect::from_points(start_descaled, end_descaled);
+                            let start_points = data.start_position_to_display.unwrap();
+                            let end_points = data.end_position_to_display.unwrap();
+                            let rect = druid::Rect::from_points(start_points, end_points);
                             //paint_ctx.fill(rect, &Color::rgba(0.0, 0.0, 1.0, 0.3));
                             paint_ctx.stroke(rect, &Color::WHITE, 1.0);
                         }
@@ -588,7 +619,6 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.is_pressed = false;
                     }
                 }
-
                 if data.is_pressed != true {
                     if data
                         .hotkeys
@@ -618,7 +648,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.hide_buttons = false;
                         data.last_key_event = Some(key_event.clone());
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-                        ctx.submit_command(druid::commands::HIDE_WINDOW.to(data.main_window_id));
+                        ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
                         ctx.submit_command(
                             druid::commands::SHOW_WINDOW.to(data.shortkeys_window_id),
                         );
@@ -630,16 +660,11 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         && !data.is_pressed
                     {
                         //sto modificando
-                        if data.start_position != Some(Point { x: 0., y: 0. })
-                            && data.end_position != Some(Point { x: 0., y: 0. })
-                        {
-                            if let (Some(_start), Some(_end)) =
-                                (data.start_position, data.end_position)
-                            {
-                                // Calculate the selected rectangle
-                                data.is_dragging = true;
-                                data.is_selecting = true;
-                            }
+                        if data.start_position != None && data.end_position != None {
+                            // Calculate the selected rectangle
+                            data.is_dragging = true;
+                            data.is_selecting = true;
+
                             data.is_pressed = true;
                             data.hide_buttons = true;
                             data.last_key_event = Some(key_event.clone());
@@ -662,7 +687,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.hide_buttons = false;
                         data.last_key_event = Some(key_event.clone());
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-                        ctx.submit_command(druid::commands::HIDE_WINDOW.to(data.main_window_id));
+                        ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
                         ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.format_window_id));
                     } else if data
                         .hotkeys
@@ -692,11 +717,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         .matches(key_event.mods, key_event.key.clone())
                         && !data.is_pressed
                     {
-                        if data.start_position != None
-                            && data.end_position != None
-                            && data.start_position != Some(Point::new(0., 0.))
-                            && data.end_position != Some(Point { x: 0., y: 0. })
-                        {
+                        if data.start_position != None && data.end_position != None {
                             data.hide_buttons = true;
                             data.save = true;
                             //function::save_screen(data, ctx.size());
@@ -719,21 +740,6 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
         }
         child.event(ctx, event, data, env);
     }
-    // fn lifecycle(
-    //     &mut self,
-    //     _child: &mut W,
-    //     ctx: &mut druid::LifeCycleCtx,
-    //     event: &druid::LifeCycle,
-    //     data: &AppData,
-    //     env: &Env,
-    // ) {
-    //     // match event {
-    //     //     druid::LifeCycle::ViewContextChanged(_) => {
-    //     //         if()
-    //     //     }
-    //     //     _ => {}
-    //     // }
-    // }
 }
 pub(crate) fn build_ui() -> impl Widget<AppData> {
     let skip_panel = ViewSwitcher::new(
@@ -794,7 +800,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         data.last_key_event = None;
                                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                                         ctx.submit_command(
-                                            druid::commands::HIDE_WINDOW.to(data.main_window_id),
+                                            druid::commands::CLOSE_WINDOW.to(ctx.window_id()),
                                         );
                                         ctx.submit_command(
                                             druid::commands::SHOW_WINDOW
@@ -815,7 +821,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         data.last_key_event = None;
                                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                                         ctx.submit_command(
-                                            druid::commands::HIDE_WINDOW.to(data.main_window_id),
+                                            druid::commands::CLOSE_WINDOW.to(ctx.window_id()),
                                         );
                                         ctx.submit_command(
                                             druid::commands::SHOW_WINDOW.to(data.format_window_id),
@@ -827,7 +833,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                             "Per uscire dalla modalità edit, premi fuori dall'area disegnata",
                         )),
                 )
-                .background(BackgroundBrush::Color(Color::BLACK))
+                .background(BackgroundBrush::Color(Color::TRANSPARENT))
                 .fix_size(
                     Display::primary().expect("erro").width() as f64,
                     Display::primary().expect("erro").height() as f64,
