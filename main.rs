@@ -1,23 +1,20 @@
-
-
-use window_format::MyRadio;
 use druid::{LocalizedString, WindowId};
+use window_format::MyRadio;
 
-use druid::{AppLauncher, Point, WindowDesc, Rect};
+use druid::{AppLauncher, Point, Rect, WindowDesc};
 
 use druid_shell::keyboard_types::Key;
 
-mod screenshot;
 mod drawing_area;
+mod function;
+mod screenshot;
 mod shortkeys_window;
 mod window_format;
-mod function;
 
 fn main() {
-
     let main_window = WindowDesc::new(shortkeys_window::ui_builder())
-    .title(LocalizedString::new("Keyboard Shortcut Settings"))
-    .window_size((1000.0, 1000.0));
+        .title(LocalizedString::new("Keyboard Shortcut Settings"))
+        .window_size((1000.0, 1000.0));
 
     let initial_state = drawing_area::AppData {
         save_image_modifier: "None".into(),
@@ -26,11 +23,11 @@ fn main() {
         quit_app_key: (Key::Character("q".to_string())).to_string(),
         edit_image_modifier: "None".into(),
         edit_image_key: (Key::Character("m".to_string())).to_string(),
-        cancel_image_modifier: "None".into(),
-        cancel_image_key: (Key::Character("".to_string())).to_string(),
-        restart_app_modifier: "None".into(),
+        start_image_modifier: "Escape".into(),
+        start_image_key: (Key::Character("".to_string())).to_string(),
+        restart_app_modifier: "Enter".into(),
         restart_app_key: (Key::Character("".to_string())).to_string(),
-        restart_format_app_modifier: "None".into(),
+        restart_format_app_modifier: "Ctrl".into(),
         restart_format_app_key: (Key::Character("".to_string())).to_string(),
         hotkeys: Vec::new(),
         is_selecting: false,
@@ -45,20 +42,15 @@ fn main() {
         radio_group: MyRadio::Png,
         label: "screenshot_grabbed".to_string(),
         format_window_id: WindowId::next(),
-        shortkeys_window_id : WindowId::next(),
-        main_window_id: main_window.id,     
+        shortkeys_window_id: WindowId::next(),
+        main_window_id: main_window.id,
         is_pressed: false,
         last_key_event: None,
-           
-        
+        hide_buttons: false,
+        save: false,
     };
 
-
-AppLauncher::with_window(main_window)
-    .launch(initial_state)
-    .expect("Failed to launch application");
-     
-   
-
-   
+    AppLauncher::with_window(main_window)
+        .launch(initial_state)
+        .expect("Failed to launch application");
 }
