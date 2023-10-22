@@ -1,8 +1,15 @@
 use crate::MyRadio;
-use image::{ImageBuffer, Rgba};
+use arboard::ImageData;
+use clipboard::{ClipboardContext, ClipboardProvider};
+use druid_shell::Clipboard;
+use image::{DynamicImage, EncodableLayout, ImageBuffer, ImageOutputFormat, Rgba};
 use scrap::Capturer;
 use screenshots::{self, Screen};
-use std::sync::{Arc, Mutex};
+use std::{
+    io::Cursor,
+    process::Command,
+    sync::{Arc, Mutex},
+};
 
 pub fn screen(
     format: MyRadio,
@@ -50,6 +57,16 @@ pub fn screen(
         image
             .save(name_capture.to_owned() + "." + form.clone())
             .unwrap();
+        // let name = name_capture.to_owned() + "." + form.clone();
+        let clipboard = &mut arboard::Clipboard::new().unwrap();
+
+        let bytes = image.as_bytes();
+        let img_data = ImageData {
+            width: image.width() as usize,
+            height: image.height() as usize,
+            bytes: bytes.as_ref().into(),
+        };
+        clipboard.set_image(img_data).unwrap();
     }
 }
 

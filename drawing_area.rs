@@ -20,6 +20,7 @@ use druid::Size;
 use druid::Target;
 use druid::Widget;
 use druid::WidgetExt;
+use druid::WindowDesc;
 use druid::WindowId;
 
 use druid::widget::Label;
@@ -31,6 +32,7 @@ use druid_shell::KeyEvent;
 use druid_shell::Modifiers as Mod;
 
 use crate::function;
+use crate::shortkeys_window;
 use crate::window_format;
 use druid::Lens;
 use druid_shell::keyboard_types::Modifiers;
@@ -366,12 +368,14 @@ impl Widget<AppData> for DrawingArea {
                             data.end_position = Some(coord);
                         }
                         if ctx.is_active() {
+                            let scale_factor_x = ctx.window().get_scale().unwrap().x();
+                            let scale_factor_y = ctx.window().get_scale().unwrap().y();
                             if let Some(handle) = &data.where_dragging.clone() {
                                 // let scale_factor_x = ctx.window().get_scale().unwrap().x();
                                 // let scale_factor_y = ctx.window().get_scale().unwrap().y();
                                 let coord = druid::Point {
-                                    x: mouse_event.pos.x,
-                                    y: mouse_event.pos.y,
+                                    x: mouse_event.pos.x * scale_factor_x,
+                                    y: mouse_event.pos.y * scale_factor_y,
                                 };
 
                                 function::edit_rect(handle, coord, data, mouse_event);
@@ -661,9 +665,13 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.last_key_event = Some(key_event.clone());
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                         ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
-                        ctx.submit_command(
-                            druid::commands::SHOW_WINDOW.to(data.shortkeys_window_id),
-                        );
+                        let format_window = WindowDesc::new(window_format::build_ui())
+                            .transparent(false)
+                            .title("Choose the format. Default is .png")
+                            .window_size(Size::new(200.0, 200.0))
+                            .set_always_on_top(true)
+                            .show_titlebar(false);
+                        ctx.new_window(format_window);
                     } else if data
                         .hotkeys
                         .get(3)
@@ -701,11 +709,18 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.is_selecting = false;
                         data.modify = false;
                         data.is_pressed = false;
+
                         data.hide_buttons = false;
                         data.last_key_event = Some(key_event.clone());
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                         ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
-                        ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.format_window_id));
+                        let format_window = WindowDesc::new(window_format::build_ui())
+                            .transparent(false)
+                            .title("Choose the format. Default is .png")
+                            .window_size(Size::new(200.0, 200.0))
+                            .set_always_on_top(true)
+                            .show_titlebar(false);
+                        ctx.new_window(format_window);
                     } else if data
                         .hotkeys
                         .get(1)
@@ -780,7 +795,8 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
 pub(crate) fn build_ui() -> impl Widget<AppData> {
     let skip_panel = ViewSwitcher::new(
         |data: &AppData, _env| data.hide_buttons,
-        move |selector, _data, _env| match selector {
+        move |selector, _data, _env| {
+            match selector {
             false => Box::new(
                 Box::new(
                     Flex::column()
@@ -838,10 +854,12 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         ctx.submit_command(
                                             druid::commands::CLOSE_WINDOW.to(ctx.window_id()),
                                         );
-                                        ctx.submit_command(
-                                            druid::commands::SHOW_WINDOW
-                                                .to(data.shortkeys_window_id),
-                                        );
+                                        let shortkeys_window = WindowDesc::new(shortkeys_window::ui_builder())    
+                                        .transparent(false)
+                                        .title("Choose your personal shorkeys configuration. Selecting same combinations for different commands isn't allowed")    
+                                        .window_size(Size::new(1000., 1000.0))
+                                        .set_always_on_top(true)    .show_titlebar(false);
+                                         ctx.new_window(shortkeys_window);
                                     },
                                 ))
                                 .with_child(Button::new("Choose image format").on_click(
@@ -859,9 +877,12 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         ctx.submit_command(
                                             druid::commands::CLOSE_WINDOW.to(ctx.window_id()),
                                         );
-                                        ctx.submit_command(
-                                            druid::commands::SHOW_WINDOW.to(data.format_window_id),
-                                        );
+                                        let format_window = WindowDesc::new(window_format::build_ui())    
+                                        .transparent(false)
+                                        .title("Choose the format. Default is .png")    
+                                        .window_size(Size::new(200.0, 200.0))
+                                        .set_always_on_top(true)    .show_titlebar(false);
+                                        ctx.new_window(format_window);
                                     },
                                 )),
                         )
@@ -876,6 +897,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                 ),
             ),
             true => Box::new(Flex::column().with_child(DrawingArea)),
+        }
         },
     );
 

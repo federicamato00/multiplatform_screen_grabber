@@ -105,6 +105,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "arboard"
+version = "3.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac57f2b058a76363e357c056e4f74f1945bf734d37b8b3ef49066c4787dde0fc"
+dependencies = [
+ "clipboard-win 4.5.0",
+ "core-graphics 0.22.3",
+ "image",
+ "log",
+ "objc",
+ "objc-foundation",
+ "objc_id",
+ "parking_lot 0.12.1",
+ "thiserror",
+ "winapi 0.3.9",
+ "x11rb 0.10.1",
+]
+
+[[package]]
 name = "arrayref"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -351,6 +370,28 @@ name = "cfg_aliases"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd16c4719339c4530435d38e511904438d07cce7950afa3718a84ac36c10e89e"
+
+[[package]]
+name = "clipboard"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25a904646c0340239dcf7c51677b33928bf24fdf424b79a57909c0109075b2e7"
+dependencies = [
+ "clipboard-win 2.2.0",
+ "objc",
+ "objc-foundation",
+ "objc_id",
+ "x11-clipboard",
+]
+
+[[package]]
+name = "clipboard-win"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3a093d6fed558e5fe24c3dfc85a68bb68f1c824f440d3ba5aca189e2998786b"
+dependencies = [
+ "winapi 0.3.9",
+]
 
 [[package]]
 name = "clipboard-win"
@@ -688,7 +729,7 @@ dependencies = [
  "fxhash",
  "widestring",
  "windows 0.48.0",
- "xcb",
+ "xcb 1.2.2",
 ]
 
 [[package]]
@@ -782,17 +823,6 @@ dependencies = [
  "web-sys",
  "winapi 0.3.9",
  "wio",
-]
-
-[[package]]
-name = "druid-widget-nursery"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fe4e3cbc027e5c9a4f1c135b339ac92aaf99681a7c1b51ff63111b5719194e5"
-dependencies = [
- "druid",
- "log",
- "tracing",
 ]
 
 [[package]]
@@ -2932,9 +2962,10 @@ dependencies = [
 name = "scratch-master"
 version = "0.1.0"
 dependencies = [
+ "arboard",
+ "clipboard",
  "druid",
  "druid-shell",
- "druid-widget-nursery",
  "iced",
  "image",
  "rdev",
@@ -2958,7 +2989,7 @@ dependencies = [
  "percent-encoding",
  "widestring",
  "windows 0.51.1",
- "xcb",
+ "xcb 1.2.2",
 ]
 
 [[package]]
@@ -4055,7 +4086,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "63287c9c4396ccf5346d035a9b0fcaead9e18377637f5eaa78b7ac65c873ff7d"
 dependencies = [
- "clipboard-win",
+ "clipboard-win 4.5.0",
  "clipboard_macos",
  "clipboard_wayland",
  "clipboard_x11",
@@ -4296,6 +4327,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "x11-clipboard"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89bd49c06c9eb5d98e6ba6536cf64ac9f7ee3a009b2f53996d405b3944f6bcea"
+dependencies = [
+ "xcb 0.8.2",
+]
+
+[[package]]
 name = "x11-dl"
 version = "2.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4320,6 +4360,19 @@ dependencies = [
 
 [[package]]
 name = "x11rb"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "592b4883219f345e712b3209c62654ebda0bb50887f330cbd018d0f654bfd507"
+dependencies = [
+ "gethostname",
+ "nix 0.24.3",
+ "winapi 0.3.9",
+ "winapi-wsapoll",
+ "x11rb-protocol 0.10.0",
+]
+
+[[package]]
+name = "x11rb"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdf3c79412dd91bae7a7366b8ad1565a85e35dd049affc3a6a2c549e97419617"
@@ -4331,7 +4384,16 @@ dependencies = [
  "once_cell",
  "winapi 0.3.9",
  "winapi-wsapoll",
- "x11rb-protocol",
+ "x11rb-protocol 0.11.1",
+]
+
+[[package]]
+name = "x11rb-protocol"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56b245751c0ac9db0e006dc812031482784e434630205a93c73cfefcaabeac67"
+dependencies = [
+ "nix 0.24.3",
 ]
 
 [[package]]
@@ -4341,6 +4403,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e0b1513b141123073ce54d5bb1d33f801f17508fbd61e02060b1214e96d39c56"
 dependencies = [
  "nix 0.25.1",
+]
+
+[[package]]
+name = "xcb"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e917a3f24142e9ff8be2414e36c649d47d6cc2ba81f16201cdef96e533e02de"
+dependencies = [
+ "libc",
+ "log",
 ]
 
 [[package]]
