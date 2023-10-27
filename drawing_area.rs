@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::env;
 
 use druid::widget::BackgroundBrush;
@@ -29,13 +30,11 @@ use druid::widget::Padding;
 use druid::widget::ViewSwitcher;
 use druid_shell::keyboard_types::Key;
 use druid_shell::KeyEvent;
-use druid_shell::Modifiers as Mod;
 
 use crate::function;
 use crate::shortkeys_window;
 use crate::window_format;
 use druid::Lens;
-use druid_shell::keyboard_types::Modifiers;
 use druid_shell::MouseButton;
 use scrap::Display;
 
@@ -64,7 +63,7 @@ pub struct AppData {
     pub(crate) restart_app_key: String,
     pub(crate) restart_format_app_modifier: String,
     pub(crate) restart_format_app_key: String,
-    pub(crate) is_pressed: bool,
+    pub(crate) is_found: bool,
     pub(crate) hide_buttons: bool,
     pub(crate) save: bool,
     #[data(ignore)]
@@ -77,26 +76,20 @@ pub struct AppData {
     pub(crate) hotkeys: Vec<MyHotkey>,
     #[data(ignore)]
     pub(crate) last_key_event: Option<KeyEvent>,
+    #[data(ignore)]
+    pub(crate) tasti: HashMap<Key,Key>,
+    #[data(ignore)]
+    pub(crate) attivazione: HashMap<Key,Key>,
+    pub(crate) count: i32,
 }
 
-#[derive(Clone, Data, PartialEq, Debug)]
-pub enum Action {
-    Quit,
-    Edit,
-    Save,
-    RestartFormat,
-    RestartApp,
-    Cancel,
-    // Aggiungi qui altre azioni...
-}
 
 // Definisci la struttura della tua hotkey
 pub const SAVE: Selector<&'static str> = Selector::new("SAVE");
 #[derive(Clone, PartialEq, Debug)]
 pub struct MyHotkey {
-    pub(crate) keys: druid::keyboard_types::Key,
-    pub(crate) action: Action,
-    pub(crate) mods: Modifiers,
+    pub(crate) keys: HashMap<Key,Key>,
+
 }
 
 #[derive(Clone, Data, PartialEq)]
@@ -107,28 +100,7 @@ pub enum DragHandle {
     BottomRight,
 }
 
-impl MyHotkey {
-    pub fn matches(&self, event_mods: Mod, event_key: Key) -> bool {
-        // Should be a const but const bit_or doesn't work here.
-        let mods = match self.mods {
-            Modifiers::SHIFT => Mod::SHIFT,
-            Modifiers::META => Mod::META,
-            Modifiers::CONTROL => Mod::CONTROL,
-            Modifiers::CAPS_LOCK => Mod::CAPS_LOCK,
-            _ => Mod::empty(),
-        };
-        // let event = event.borrow();
 
-        // mods == event.mods  && self.keys == event.key
-        //println!("hotkey {:?},event: {:?}, key event: {:?}",mods,event_mods,event_key);
-        let all_mod_pressed = mods == event_mods;
-
-        // Controlla se ci sono altri tasti premuti
-        let all_keys_pressed = self.keys == event_key;
-
-        all_keys_pressed && all_mod_pressed
-    }
-}
 
 struct DrawingArea;
 impl Widget<AppData> for DrawingArea {
@@ -149,7 +121,7 @@ impl Widget<AppData> for DrawingArea {
                 ); // Imposta le dimensioni desiderate qui
                 ctx.window().set_size(size);
                 //println!("size window {:?}",size);
-                data.is_pressed = false;
+                
             }
             // Event::KeyDown(key_event) => {
             //     if data.hide_buttons {
@@ -616,42 +588,59 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
         ctx.request_focus();
 
         match event {
-            Event::KeyUp(key_event) => {
-                //println!("{:?}", key_event);
-
-                if let Some(last_event) = data.last_key_event.clone() {
-                    let key = match last_event.mods {
-                        Mod::CONTROL => Key::Control,
-                        Mod::SHIFT => Key::Shift,
-                        Mod::META => Key::Meta,
-                        Mod::CAPS_LOCK => Key::CapsLock,
-                        _ => Key::Fn,
-                    };
-
-                    if key == (key_event.key) && key_event.key != last_event.key {
-                        data.is_pressed = true;
-                    } else {
-                        data.is_pressed = false;
-                    }
+            Event::KeyDown(key_event) => {
+                if !data.tasti.contains_key(&key_event.key) {
+                    data.tasti.insert(key_event.key.clone(), key_event.key.clone());
+                    data.count+=1;
+                    
                 }
 
-                if data.is_pressed != true {
-                    if data
-                        .hotkeys
-                        .get(2)
-                        .unwrap()
-                        .matches(key_event.mods, key_event.key.clone())
-                        && !data.is_pressed
-                    {
-                        // Chiudi la finestra
-                        ctx.submit_command(druid::commands::QUIT_APP);
-                    } else if data
-                        .hotkeys
-                        .get(4)
-                        .unwrap()
-                        .matches(key_event.mods, key_event.key.clone())
-                        && !data.is_pressed
-                    {
+            }
+            Event::KeyUp(key_event) => {
+            
+            if data.tasti.contains_key(&key_event.key) && !data.attivazione.contains_key(&key_event.key) {
+                data.attivazione.insert(key_event.key.clone(), key_event.key.clone());
+                data.tasti.remove(&key_event.key);
+                data.count-=1;
+
+            }
+            
+            if data.count==0 && !data.attivazione.is_empty(){
+                let mut found= false;
+                for key in  &data.hotkeys.get(0).unwrap().keys 
+                {
+                    if !data.attivazione.contains_key(key.0) {
+                        found=false;
+                        break;
+                    }
+                    else {
+                        found=true;
+                    }
+                }
+                if found==true {
+                    if data.start_position != None
+                            && data.end_position != None
+                            && data.start_position != Some(Point::new(0., 0.))
+                            && data.end_position != Some(Point { x: 0., y: 0. })
+                        {
+                            data.hide_buttons = true;
+                            data.save = true;
+                            //function::save_screen(data, ctx.size());
+                            //ctx.submit_command(Command::new(SAVE, "", Target::Global));
+                            data.last_key_event = Some(key_event.clone());
+                        }
+                }
+                for key in  &data.hotkeys.get(1).unwrap().keys 
+                {
+                    if !data.attivazione.contains_key(key.0) {
+                        found=false;
+                        break;
+                    }
+                    else {
+                        found=true;
+                    }
+                }
+                if found==true {
                         data.start_position = None;
                         data.end_position = None;
                         data.start_position_to_display = None;
@@ -659,26 +648,40 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.is_dragging = false;
                         data.is_selecting = false;
                         data.modify = false;
-                        data.hotkeys = Vec::new();
-                        data.is_pressed = true;
-                        data.hide_buttons = false;
-                        data.last_key_event = Some(key_event.clone());
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-                        ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
-                        let format_window = WindowDesc::new(window_format::build_ui())
-                            .transparent(false)
-                            .title("Choose the format. Default is .png")
-                            .window_size(Size::new(200.0, 200.0))
-                            .set_always_on_top(true)
-                            .show_titlebar(false);
-                        ctx.new_window(format_window);
-                    } else if data
-                        .hotkeys
-                        .get(3)
-                        .unwrap()
-                        .matches(key_event.mods, key_event.key.clone())
-                        && !data.is_pressed
-                    {
+                        // ctx.request_paint();
+                        data.is_found=true;
+                        data.hide_buttons = true;
+                        data.last_key_event = Some(key_event.clone());
+
+                    
+                }
+                if !data.is_found
+                {for key in  &data.hotkeys.get(2).unwrap().keys 
+                {
+                    if !data.attivazione.contains_key(key.0) {
+                        found=false;
+                        break;
+                    }
+                    else {
+                        found=true;
+                    }
+                }
+                if found==true {
+                    ctx.submit_command(druid::commands::QUIT_APP);
+                }
+                }
+                for key in  &data.hotkeys.get(3).unwrap().keys
+                {
+                    if !data.attivazione.contains_key(key.0) {
+                        found=false;
+                        break;
+                    }
+                    else {
+                        found=true;
+                    }
+                }
+                if found==true {
                         //sto modificando
                         if data.start_position != Some(Point { x: 0., y: 0. })
                             && data.end_position != Some(Point { x: 0., y: 0. })
@@ -690,88 +693,246 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                                 data.is_dragging = true;
                                 data.is_selecting = true;
                             }
-                            data.is_pressed = true;
+                            data.is_found = true;
                             data.hide_buttons = true;
                             data.last_key_event = Some(key_event.clone());
                         }
-                    } else if data
-                        .hotkeys
-                        .get(5)
-                        .unwrap()
-                        .matches(key_event.mods, key_event.key.clone())
-                        && data.is_pressed != true
-                    {
-                        data.start_position = None;
+                }
+                if !data.is_found
+                {for key in  &data.hotkeys.get(4).unwrap().keys 
+                {
+                    if !data.attivazione.contains_key(key.0) {
+                        found=false;
+                        break;
+                    }
+                    else {   
+                        found=true;
+                    }
+                }
+                if found==true {
+
+                    data.start_position = None;
+                    data.end_position = None;
+                    data.start_position_to_display = None;
+                    data.end_position_to_display = None;
+                    data.is_dragging = false;
+                    data.is_selecting = false;
+                    data.modify = false;
+                    data.hotkeys = Vec::new();
+                    data.is_found = true;
+                    data.last_key_event = None;
+                    data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+                    ctx.submit_command(
+                        druid::commands::CLOSE_WINDOW.to(ctx.window_id()),
+                    );
+                    let shortkeys_window = WindowDesc::new(shortkeys_window::ui_builder())    
+                    .transparent(false)
+                    .title("Choose your personal shorkeys configuration. Selecting same combinations for different commands isn't allowed")    
+                    .window_size(Size::new(1000., 1000.0))
+                    .set_always_on_top(true)    .show_titlebar(true);
+                     ctx.new_window(shortkeys_window);
+
+
+                        
+
+                }}
+                if !data.is_found
+                {for key in  &data.hotkeys.get(5).unwrap().keys 
+                {
+                    if !data.attivazione.contains_key(key.0) {
+                        found=false;
+                        break;
+                    }
+                    else {
+                        found=true;
+                    }
+                }
+                if found==true {
+                    data.start_position = None;
                         data.end_position = None;
                         data.start_position_to_display = None;
                         data.end_position_to_display = None;
                         data.is_dragging = false;
                         data.is_selecting = false;
                         data.modify = false;
-                        data.is_pressed = false;
-
+                        data.is_found = true;
                         data.hide_buttons = false;
                         data.last_key_event = Some(key_event.clone());
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+                        data.is_found=true;
                         ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
                         let format_window = WindowDesc::new(window_format::build_ui())
                             .transparent(false)
                             .title("Choose the format. Default is .png")
                             .window_size(Size::new(200.0, 200.0))
                             .set_always_on_top(true)
-                            .show_titlebar(false);
+                            .show_titlebar(true);
                         ctx.new_window(format_window);
-                    } else if data
-                        .hotkeys
-                        .get(1)
-                        .unwrap()
-                        .matches(key_event.mods, key_event.key.clone())
-                        && !data.is_pressed
-                    {
-                        data.start_position = None;
-                        data.end_position = None;
-                        data.start_position_to_display = None;
-                        data.end_position_to_display = None;
-                        data.is_dragging = false;
-                        data.is_selecting = false;
-                        data.modify = false;
-                        data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-                        // ctx.request_paint();
-                        data.is_pressed = true;
-                        data.hide_buttons = true;
-                        data.last_key_event = Some(key_event.clone());
+                                        
+                }}
 
-                        //println!("sei in cancel {:?}", data.last_key_event);
-                    } else if data
-                        .hotkeys
-                        .get(0)
-                        .unwrap()
-                        .matches(key_event.mods, key_event.key.clone())
-                        && !data.is_pressed
-                    {
-                        if data.start_position != None
-                            && data.end_position != None
-                            && data.start_position != Some(Point::new(0., 0.))
-                            && data.end_position != Some(Point { x: 0., y: 0. })
-                        {
-                            data.hide_buttons = true;
-                            data.save = true;
-                            //function::save_screen(data, ctx.size());
-                            //ctx.submit_command(Command::new(SAVE, "", Target::Global));
-                            data.last_key_event = Some(key_event.clone());
-                        }
-                        //ctx.request_paint();
-                    } else {
-                        data.is_pressed = true;
-                        data.hide_buttons = false;
-                        data.last_key_event = Some(key_event.clone());
-                    }
-                } else {
-                    data.is_pressed = false;
-                    data.hide_buttons = false;
-                    data.last_key_event = None;
-                }
+                
             }
+            data.attivazione=HashMap::new();
+            data.is_found=false;
+            
+
+            //     println!("{:?}", key_event);       
+            //     if let Some(last_event) = data.last_key_event.clone() {
+            //         let key = match last_event.mods {
+            //             Mod::CONTROL => Key::Control,
+            //             Mod::SHIFT => Key::Shift,
+            //             Mod::META => Key::Meta,
+            //             Mod::CAPS_LOCK => Key::CapsLock,
+
+            //             _ => Key::Fn,
+            //         };
+                    
+            //         if key == (key_event.key) && key_event.key != last_event.key {
+            //             data.is_pressed = true;
+            //         } else {
+            //             data.is_pressed = false;
+            //         }
+            //     }
+                
+                
+            //     if data.is_pressed != true {
+            //         if data
+            //             .hotkeys
+            //             .get(2)
+            //             .unwrap()
+            //             .matches(key_event.mods, key_event.key.clone())
+            //             && !data.is_pressed
+            //         {
+            //             // Chiudi la finestra
+            //             ctx.submit_command(druid::commands::QUIT_APP);
+            //         } else if data
+            //             .hotkeys
+            //             .get(4)
+            //             .unwrap()
+            //             .matches(key_event.mods, key_event.key.clone())
+            //             && !data.is_pressed
+            //         {
+            //             data.start_position = None;
+            //             data.end_position = None;
+            //             data.start_position_to_display = None;
+            //             data.end_position_to_display = None;
+            //             data.is_dragging = false;
+            //             data.is_selecting = false;
+            //             data.modify = false;
+            //             data.hotkeys = Vec::new();
+            //             data.is_pressed = true;
+            //             data.hide_buttons = false;
+            //             data.last_key_event = Some(key_event.clone());
+            //             data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+            //             ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
+            //             let format_window = WindowDesc::new(window_format::build_ui())
+            //                 .transparent(false)
+            //                 .title("Choose the format. Default is .png")
+            //                 .window_size(Size::new(200.0, 200.0))
+            //                 .set_always_on_top(true)
+            //                 .show_titlebar(false);
+            //             ctx.new_window(format_window);
+            //         } else if data
+            //             .hotkeys
+            //             .get(3)
+            //             .unwrap()
+            //             .matches(key_event.mods, key_event.key.clone())
+            //             && !data.is_pressed
+            //         {
+            //             //sto modificando
+            //             if data.start_position != Some(Point { x: 0., y: 0. })
+            //                 && data.end_position != Some(Point { x: 0., y: 0. })
+            //             {
+            //                 if let (Some(_start), Some(_end)) =
+            //                     (data.start_position, data.end_position)
+            //                 {
+            //                     // Calculate the selected rectangle
+            //                     data.is_dragging = true;
+            //                     data.is_selecting = true;
+            //                 }
+            //                 data.is_pressed = true;
+            //                 data.hide_buttons = true;
+            //                 data.last_key_event = Some(key_event.clone());
+            //             }
+            //         } else if data
+            //             .hotkeys
+            //             .get(5)
+            //             .unwrap()
+            //             .matches(key_event.mods, key_event.key.clone())
+            //             && data.is_pressed != true
+            //         {
+            //             data.start_position = None;
+            //             data.end_position = None;
+            //             data.start_position_to_display = None;
+            //             data.end_position_to_display = None;
+            //             data.is_dragging = false;
+            //             data.is_selecting = false;
+            //             data.modify = false;
+            //             data.is_pressed = false;
+
+            //             data.hide_buttons = false;
+            //             data.last_key_event = Some(key_event.clone());
+            //             data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+            //             ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
+            //             let format_window = WindowDesc::new(window_format::build_ui())
+            //                 .transparent(false)
+            //                 .title("Choose the format. Default is .png")
+            //                 .window_size(Size::new(200.0, 200.0))
+            //                 .set_always_on_top(true)
+            //                 .show_titlebar(false);
+            //             ctx.new_window(format_window);
+            //         } else if data
+            //             .hotkeys
+            //             .get(1)
+            //             .unwrap()
+            //             .matches(key_event.mods, key_event.key.clone())
+            //             && !data.is_pressed
+            //         {
+            //             data.start_position = None;
+            //             data.end_position = None;
+            //             data.start_position_to_display = None;
+            //             data.end_position_to_display = None;
+            //             data.is_dragging = false;
+            //             data.is_selecting = false;
+            //             data.modify = false;
+            //             data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+            //             // ctx.request_paint();
+            //             data.is_pressed = true;
+            //             data.hide_buttons = true;
+            //             data.last_key_event = Some(key_event.clone());
+
+            //             //println!("sei in cancel {:?}", data.last_key_event);
+            //         } else if data
+            //             .hotkeys
+            //             .get(0)
+            //             .unwrap()
+            //             .matches(key_event.mods, key_event.key.clone())
+            //             && !data.is_pressed
+            //         {
+            //             if data.start_position != None
+            //                 && data.end_position != None
+            //                 && data.start_position != Some(Point::new(0., 0.))
+            //                 && data.end_position != Some(Point { x: 0., y: 0. })
+            //             {
+            //                 data.hide_buttons = true;
+            //                 data.save = true;
+            //                 //function::save_screen(data, ctx.size());
+            //                 //ctx.submit_command(Command::new(SAVE, "", Target::Global));
+            //                 data.last_key_event = Some(key_event.clone());
+            //             }
+            //             //ctx.request_paint();
+            //         } else {
+            //             data.is_pressed = true;
+            //             data.hide_buttons = false;
+            //             data.last_key_event = Some(key_event.clone());
+            //         }
+            //     } else {
+            //         data.is_pressed = false;
+            //         data.hide_buttons = false;
+            //         data.last_key_event = None;
+            //     }
+             }
             _ => {}
         }
         child.event(ctx, event, data, env);
@@ -848,7 +1009,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         data.is_selecting = false;
                                         data.modify = false;
                                         data.hotkeys = Vec::new();
-                                        data.is_pressed = true;
+                                        data.is_found = false;
                                         data.last_key_event = None;
                                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                                         ctx.submit_command(
@@ -858,7 +1019,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         .transparent(false)
                                         .title("Choose your personal shorkeys configuration. Selecting same combinations for different commands isn't allowed")    
                                         .window_size(Size::new(1000., 1000.0))
-                                        .set_always_on_top(true)    .show_titlebar(false);
+                                        .set_always_on_top(true)    .show_titlebar(true);
                                          ctx.new_window(shortkeys_window);
                                     },
                                 ))
@@ -871,7 +1032,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         data.is_dragging = false;
                                         data.is_selecting = false;
                                         data.modify = false;
-                                        data.is_pressed = false;
+                                        data.is_found = false;
                                         data.last_key_event = None;
                                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                                         ctx.submit_command(
@@ -881,7 +1042,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         .transparent(false)
                                         .title("Choose the format. Default is .png")    
                                         .window_size(Size::new(200.0, 200.0))
-                                        .set_always_on_top(true)    .show_titlebar(false);
+                                        .set_always_on_top(true)    .show_titlebar(true);
                                         ctx.new_window(format_window);
                                     },
                                 )),

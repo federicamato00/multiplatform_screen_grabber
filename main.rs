@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use druid::{LocalizedString, WindowId};
 use window_format::MyRadio;
 
@@ -44,10 +46,13 @@ fn main() {
         format_window_id: WindowId::next(),
         shortkeys_window_id: WindowId::next(),
         main_window_id: main_window.id,
-        is_pressed: false,
+        is_found: false,
         last_key_event: None,
         hide_buttons: false,
         save: false,
+        tasti: HashMap::new(),
+        attivazione: HashMap::new(),
+        count: 0,
     };
 
     AppLauncher::with_window(main_window)

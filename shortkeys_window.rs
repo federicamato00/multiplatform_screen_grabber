@@ -1,10 +1,11 @@
+use std::collections::HashMap;
+
 use druid::widget::{Button, Controller, Flex, Label, RadioGroup, TextBox};
 use druid::Event::KeyDown;
 use druid::{Env, Event, EventCtx, Size, Widget, WidgetExt, WindowDesc};
-use druid_shell::keyboard_types::{Key, Modifiers};
-use druid_shell::RawMods;
+use druid_shell::keyboard_types::Key;
 
-use crate::drawing_area::{self, Action, MyHotkey};
+use crate::drawing_area::{self, MyHotkey};
 use crate::function;
 use crate::window_format;
 
@@ -170,464 +171,595 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             // Qui puoi definire le tue HotKey basate sui valori in data
 
             let save_image_modifier = match data.save_image_modifier.as_str() {
-                "Ctrl" => Some(RawMods::Ctrl),
-                "Shift" => Some(RawMods::Shift),
-                "Escape" => Some(RawMods::None),
-                "Enter" => Some(RawMods::Meta),
+                "Ctrl" => Some(Key::Control),
+                "Shift" => Some(Key::Shift),
+                "Escape" => Some(Key::Escape),
+                "Enter" => Some(Key::Enter),
                 _ => None,
             };
-            let mut key = data.save_image_key.clone();
-
-            //println!("{:?}",data.save_image_key);
-            if (save_image_modifier.eq(&Some(RawMods::Ctrl))
-                && data.save_image_key == "".to_string())
-                || (save_image_modifier.eq(&Some(RawMods::Shift))
-                    && data.save_image_key == "".to_string())
-            {
-                if save_image_modifier.eq(&Some(RawMods::Ctrl)) {
-                    let save_image_hotkey = MyHotkey {
-                        keys: Key::Control,
-                        action: Action::Save,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(save_image_hotkey);
-                } else {
-                    let save_image_hotkey = MyHotkey {
-                        keys: Key::Shift,
-                        action: Action::Save,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(save_image_hotkey);
-                }
-            } else if save_image_modifier.eq(&Some(RawMods::Shift)) {
-                key.make_ascii_uppercase();
-                let save_image_hotkey = MyHotkey {
-                    keys: Key::Character(key),
-                    action: Action::Save,
-                    mods: Modifiers::SHIFT,
-                };
-                data.hotkeys.push(save_image_hotkey);
-            } else if save_image_modifier.eq(&Some(RawMods::Ctrl)) {
-                let save_image_hotkey = MyHotkey {
-                    keys: Key::Character(key),
-                    action: Action::Save,
-                    mods: Modifiers::CONTROL,
-                };
-                data.hotkeys.push(save_image_hotkey);
-            } else if save_image_modifier.eq(&Some(RawMods::None)) {
-                let save_image_hotkey = MyHotkey {
-                    keys: Key::Escape,
-                    action: Action::Save,
-                    mods: Modifiers::empty(),
-                };
-                data.hotkeys.push(save_image_hotkey);
-            } else if save_image_modifier.eq(&Some(RawMods::Meta)) {
-                let save_image_hotkey = MyHotkey {
-                    keys: Key::Enter,
-                    action: Action::Save,
-                    mods: Modifiers::empty(),
-                };
-                data.hotkeys.push(save_image_hotkey);
-            } else {
-                if key.chars().all(|c| c.is_lowercase()) {
-                    let save_image_hotkey = MyHotkey {
-                        keys: Key::Character(key),
-                        action: Action::Save,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(save_image_hotkey);
-                } else {
-                    let save_image_hotkey = MyHotkey {
-                        keys: Key::Character(key),
-                        action: Action::Save,
-                        mods: Modifiers::CAPS_LOCK,
-                    };
-
-                    data.hotkeys.push(save_image_hotkey);
-                }
+            let key = data.save_image_key.clone();
+            let mut shortcut = MyHotkey {
+                keys: HashMap::new(),
+            };
+            if !key.is_empty() {
+                shortcut
+                    .keys
+                    .insert(Key::Character(key.clone()), Key::Character(key.clone()));
             }
+            if save_image_modifier != None {
+                shortcut.keys.insert(
+                    save_image_modifier.clone().unwrap(),
+                    save_image_modifier.clone().unwrap(),
+                );
+            }
+            data.hotkeys.push(shortcut);
             let start_image_modifier = match data.start_image_modifier.as_str() {
-                "Ctrl" => Some(RawMods::Ctrl),
-                "Shift" => Some(RawMods::Shift),
-                "Escape" => Some(RawMods::None),
-                "Enter" => Some(RawMods::Meta),
+                "Ctrl" => Some(Key::Control),
+                "Shift" => Some(Key::Shift),
+                "Escape" => Some(Key::Escape),
+                "Enter" => Some(Key::Enter),
                 _ => None,
             };
-            let mut key = data.start_image_key.clone();
-            //println!("{:?}",data.save_image_key);
-            if (start_image_modifier.eq(&Some(RawMods::Ctrl))
-                && data.start_image_key == "".to_string())
-                || (start_image_modifier.eq(&Some(RawMods::Shift))
-                    && data.start_image_key == "".to_string())
-            {
-                if start_image_modifier.eq(&Some(RawMods::Ctrl)) {
-                    let cancel_image_hotkey = MyHotkey {
-                        keys: Key::Control,
-                        action: Action::Cancel,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(cancel_image_hotkey);
-                } else {
-                    let start_image_hotkey = MyHotkey {
-                        keys: Key::Shift,
-                        action: Action::Cancel,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(start_image_hotkey);
-                }
-            } else if start_image_modifier.eq(&Some(RawMods::Shift)) {
-                key.make_ascii_uppercase();
-                let cancel_image_hotkey = MyHotkey {
-                    keys: Key::Character(key),
-                    action: Action::Cancel,
-                    mods: Modifiers::SHIFT,
-                };
-                data.hotkeys.push(cancel_image_hotkey);
-            } else if start_image_modifier.eq(&Some(RawMods::Ctrl)) {
-                let start_image_hotkey = MyHotkey {
-                    keys: Key::Character(key),
-                    action: Action::Cancel,
-                    mods: Modifiers::CONTROL,
-                };
-                data.hotkeys.push(start_image_hotkey);
-            } else if start_image_modifier.eq(&Some(RawMods::None)) {
-                let start_image_hotkey = MyHotkey {
-                    keys: Key::Escape,
-                    action: Action::Cancel,
-                    mods: Modifiers::empty(),
-                };
-                data.hotkeys.push(start_image_hotkey);
-            } else if start_image_modifier.eq(&Some(RawMods::Meta)) {
-                let start_image_hotkey = MyHotkey {
-                    keys: Key::Enter,
-                    action: Action::Cancel,
-                    mods: Modifiers::empty(),
-                };
-                data.hotkeys.push(start_image_hotkey);
-            } else {
-                if key.chars().all(|c| c.is_lowercase()) {
-                    let start_image_hotkey = MyHotkey {
-                        keys: Key::Character(key),
-                        action: Action::Cancel,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(start_image_hotkey);
-                } else {
-                    let start_image_hotkey = MyHotkey {
-                        keys: Key::Character(key),
-                        action: Action::Cancel,
-                        mods: Modifiers::CAPS_LOCK,
-                    };
-                    data.hotkeys.push(start_image_hotkey);
-                }
+            let mut shortcut = MyHotkey {
+                keys: HashMap::new(),
+            };
+            let key = data.start_image_key.clone();
+            if !key.is_empty() {
+                shortcut
+                    .keys
+                    .insert(Key::Character(key.clone()), Key::Character(key.clone()));
             }
-            //println!("key: {:?}", key);
-            //let _save_image_hotkey = HotKey::new(save_image_modifier, key);
-            //let key = Code::from_str(&data.quit_app_key).unwrap();
-
+            if start_image_modifier != None {
+                shortcut.keys.insert(
+                    start_image_modifier.clone().unwrap(),
+                    start_image_modifier.clone().unwrap(),
+                );
+            }
+            data.hotkeys.push(shortcut);
             let quit_app_modifier = match data.quit_app_modifier.as_str() {
-                "Ctrl" => Some(RawMods::Ctrl),
-                "Shift" => Some(RawMods::Shift),
-                "Escape" => Some(RawMods::None),
-                "Enter" => Some(RawMods::Meta),
+                "Ctrl" => Some(Key::Control),
+                "Shift" => Some(Key::Shift),
+                "Escape" => Some(Key::Escape),
+                "Enter" => Some(Key::Enter),
                 _ => None,
             };
-            //let _quit_app_hotkey = HotKey::new(quit_app_modifier, key);
-            let mut key = data.quit_app_key.clone();
-            //println!("{:?}",data.save_image_key);
-            if (quit_app_modifier.eq(&Some(RawMods::Ctrl)) && data.quit_app_key == "".to_string())
-                || (quit_app_modifier.eq(&Some(RawMods::Shift))
-                    && data.quit_app_key == "".to_string())
-            {
-                if quit_app_modifier.eq(&Some(RawMods::Ctrl)) {
-                    let quit_image_hotkey = MyHotkey {
-                        keys: Key::Control,
-                        action: Action::Quit,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(quit_image_hotkey);
-                } else {
-                    let quit_image_hotkey = MyHotkey {
-                        keys: Key::Shift,
-                        action: Action::Quit,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(quit_image_hotkey);
-                }
-            } else if quit_app_modifier.eq(&Some(RawMods::Shift)) {
-                key.make_ascii_uppercase();
-                let quit_image_hotkey = MyHotkey {
-                    keys: Key::Character(key),
-                    action: Action::Quit,
-                    mods: Modifiers::SHIFT,
-                };
-                data.hotkeys.push(quit_image_hotkey);
-            } else if quit_app_modifier.eq(&Some(RawMods::Ctrl)) {
-                let quit_image_hotkey = MyHotkey {
-                    keys: Key::Character(key),
-                    action: Action::Quit,
-                    mods: Modifiers::CONTROL,
-                };
-                data.hotkeys.push(quit_image_hotkey);
-            } else if quit_app_modifier.eq(&Some(RawMods::None)) {
-                let quit_image_hotkey = MyHotkey {
-                    keys: Key::Escape,
-                    action: Action::Quit,
-                    mods: Modifiers::empty(),
-                };
-                data.hotkeys.push(quit_image_hotkey);
-            } else if quit_app_modifier.eq(&Some(RawMods::Meta)) {
-                let quit_image_hotkey = MyHotkey {
-                    keys: Key::Enter,
-                    action: Action::Quit,
-                    mods: Modifiers::empty(),
-                };
-                data.hotkeys.push(quit_image_hotkey);
-            } else {
-                if key.chars().all(|c| c.is_lowercase()) {
-                    let quit_image_hotkey = MyHotkey {
-                        keys: Key::Character(key),
-                        action: Action::Quit,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(quit_image_hotkey);
-                } else {
-                    let quit_image_hotkey = MyHotkey {
-                        keys: Key::Character(key),
-                        action: Action::Quit,
-                        mods: Modifiers::CAPS_LOCK,
-                    };
-                    data.hotkeys.push(quit_image_hotkey);
-                }
+            let mut shortcut = MyHotkey {
+                keys: HashMap::new(),
+            };
+            let key = data.quit_app_key.clone();
+            if !key.is_empty() {
+                shortcut
+                    .keys
+                    .insert(Key::Character(key.clone()), Key::Character(key.clone()));
             }
+            if quit_app_modifier != None {
+                shortcut.keys.insert(
+                    quit_app_modifier.clone().unwrap(),
+                    quit_app_modifier.clone().unwrap(),
+                );
+            }
+            data.hotkeys.push(shortcut);
 
             let edit_image_modifier = match data.edit_image_modifier.as_str() {
-                "Ctrl" => Some(RawMods::Ctrl),
-                "Shift" => Some(RawMods::Shift),
-                "Escape" => Some(RawMods::None),
-                "Enter" => Some(RawMods::Meta),
+                "Ctrl" => Some(Key::Control),
+                "Shift" => Some(Key::Shift),
+                "Escape" => Some(Key::Escape),
+                "Enter" => Some(Key::Enter),
                 _ => None,
             };
-
-            let mut key = data.edit_image_key.clone();
-
-            if (edit_image_modifier.eq(&Some(RawMods::Ctrl))
-                && data.edit_image_key == "".to_string())
-                || (edit_image_modifier.eq(&Some(RawMods::Shift))
-                    && data.edit_image_key == "".to_string())
-            {
-                if edit_image_modifier.eq(&Some(RawMods::Ctrl)) {
-                    let edit_image_hotkey = MyHotkey {
-                        keys: Key::Control,
-                        action: Action::Edit,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(edit_image_hotkey);
-                } else {
-                    let edit_image_hotkey = MyHotkey {
-                        keys: Key::Shift,
-                        action: Action::Edit,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(edit_image_hotkey);
-                }
-            } else if edit_image_modifier.eq(&Some(RawMods::Shift)) {
-                key.make_ascii_uppercase();
-                let edit_image_hotkey = MyHotkey {
-                    keys: Key::Character(key),
-                    action: Action::Edit,
-                    mods: Modifiers::SHIFT,
-                };
-                data.hotkeys.push(edit_image_hotkey);
-            } else if edit_image_modifier.eq(&Some(RawMods::Ctrl)) {
-                let edit_image_hotkey = MyHotkey {
-                    keys: Key::Character(key),
-                    action: Action::Edit,
-                    mods: Modifiers::CONTROL,
-                };
-                data.hotkeys.push(edit_image_hotkey);
-            } else if edit_image_modifier.eq(&Some(RawMods::Meta)) {
-                let edit_image_hotkey = MyHotkey {
-                    keys: Key::Enter,
-                    action: Action::Edit,
-                    mods: Modifiers::empty(),
-                };
-                data.hotkeys.push(edit_image_hotkey);
-            } else if edit_image_modifier.eq(&Some(RawMods::None)) {
-                let edit_image_hotkey = MyHotkey {
-                    keys: Key::Escape,
-                    action: Action::Edit,
-                    mods: Modifiers::empty(),
-                };
-                data.hotkeys.push(edit_image_hotkey);
-            } else {
-                if key.chars().all(|c| c.is_lowercase()) {
-                    let edit_image_hotkey = MyHotkey {
-                        keys: Key::Character(key),
-                        action: Action::Edit,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(edit_image_hotkey);
-                } else {
-                    let edit_image_hotkey = MyHotkey {
-                        keys: Key::Character(key),
-                        action: Action::Edit,
-                        mods: Modifiers::CAPS_LOCK,
-                    };
-                    data.hotkeys.push(edit_image_hotkey);
-                }
+            let mut shortcut = MyHotkey {
+                keys: HashMap::new(),
+            };
+            let key = data.edit_image_key.clone();
+            if !key.is_empty() {
+                shortcut
+                    .keys
+                    .insert(Key::Character(key.clone()), Key::Character(key.clone()));
             }
+            if edit_image_modifier != None {
+                shortcut.keys.insert(
+                    edit_image_modifier.clone().unwrap(),
+                    edit_image_modifier.clone().unwrap(),
+                );
+            }
+            data.hotkeys.push(shortcut);
             let restart_app_modifier = match data.restart_app_modifier.as_str() {
-                "Ctrl" => Some(RawMods::Ctrl),
-                "Shift" => Some(RawMods::Shift),
-                "Escape" => Some(RawMods::None),
-                "Enter" => Some(RawMods::Meta),
+                "Ctrl" => Some(Key::Control),
+                "Shift" => Some(Key::Shift),
+                "Escape" => Some(Key::Escape),
+                "Enter" => Some(Key::Enter),
                 _ => None,
             };
-            let mut key = data.restart_app_key.clone();
-            //println!("{:?}",data.save_image_key);
-            if (restart_app_modifier.eq(&Some(RawMods::Ctrl))
-                && data.restart_app_key == "".to_string())
-                || (restart_app_modifier.eq(&Some(RawMods::Shift))
-                    && data.restart_app_key == "".to_string())
-            {
-                if restart_app_modifier.eq(&Some(RawMods::Ctrl)) {
-                    let restart_app_hotkey = MyHotkey {
-                        keys: Key::Control,
-                        action: Action::RestartApp,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(restart_app_hotkey);
-                } else {
-                    let restart_app_hotkey = MyHotkey {
-                        keys: Key::Shift,
-                        action: Action::RestartApp,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(restart_app_hotkey);
-                }
-            } else if restart_app_modifier.eq(&Some(RawMods::Shift)) {
-                key.make_ascii_uppercase();
-                let restart_app_hotkey = MyHotkey {
-                    keys: Key::Character(key),
-                    action: Action::RestartApp,
-                    mods: Modifiers::SHIFT,
-                };
-                data.hotkeys.push(restart_app_hotkey);
-            } else if restart_app_modifier.eq(&Some(RawMods::Ctrl)) {
-                let restart_app_hotkey = MyHotkey {
-                    keys: Key::Character(key),
-                    action: Action::RestartApp,
-                    mods: Modifiers::CONTROL,
-                };
-                data.hotkeys.push(restart_app_hotkey);
-            } else if restart_app_modifier.eq(&Some(RawMods::None)) {
-                let restart_app_hotkey = MyHotkey {
-                    keys: Key::Escape,
-                    action: Action::RestartApp,
-                    mods: Modifiers::empty(),
-                };
-                data.hotkeys.push(restart_app_hotkey);
-            } else if restart_app_modifier.eq(&Some(RawMods::Meta)) {
-                let restart_app_hotkey = MyHotkey {
-                    keys: Key::Enter,
-                    action: Action::RestartApp,
-                    mods: Modifiers::empty(),
-                };
-                data.hotkeys.push(restart_app_hotkey);
-            } else {
-                if key.chars().all(|c| c.is_lowercase()) {
-                    let restart_app_hotkey = MyHotkey {
-                        keys: Key::Character(key),
-                        action: Action::RestartApp,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(restart_app_hotkey);
-                } else {
-                    let restart_app_hotkey = MyHotkey {
-                        keys: Key::Character(key),
-                        action: Action::RestartApp,
-                        mods: Modifiers::CAPS_LOCK,
-                    };
-                    data.hotkeys.push(restart_app_hotkey);
-                }
+            let mut shortcut = MyHotkey {
+                keys: HashMap::new(),
+            };
+            let key = data.restart_app_key.clone();
+            if !key.is_empty() {
+                shortcut
+                    .keys
+                    .insert(Key::Character(key.clone()), Key::Character(key.clone()));
             }
-
+            if restart_app_modifier != None {
+                shortcut.keys.insert(
+                    restart_app_modifier.clone().unwrap(),
+                    restart_app_modifier.clone().unwrap(),
+                );
+            }
+            data.hotkeys.push(shortcut);
             let restart_format_app_modifier = match data.restart_format_app_modifier.as_str() {
-                "Ctrl" => Some(RawMods::Ctrl),
-                "Shift" => Some(RawMods::Shift),
-                "Escape" => Some(RawMods::None),
-                "Enter" => Some(RawMods::Meta),
+                "Ctrl" => Some(Key::Control),
+                "Shift" => Some(Key::Shift),
+                "Escape" => Some(Key::Escape),
+                "Enter" => Some(Key::Enter),
                 _ => None,
             };
-            let mut key = data.restart_format_app_key.clone();
-            //println!("{:?}",data.save_image_key);
-            if (restart_format_app_modifier.eq(&Some(RawMods::Ctrl))
-                && data.restart_format_app_key == "".to_string())
-                || (restart_format_app_modifier.eq(&Some(RawMods::Shift))
-                    && data.restart_format_app_key == "".to_string())
-            {
-                if restart_format_app_modifier.eq(&Some(RawMods::Ctrl)) {
-                    let restart_format_app_hotkey = MyHotkey {
-                        keys: Key::Control,
-                        action: Action::RestartFormat,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(restart_format_app_hotkey);
-                } else {
-                    let restart_format_app_hotkey = MyHotkey {
-                        keys: Key::Shift,
-                        action: Action::RestartFormat,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(restart_format_app_hotkey);
-                }
-            } else if restart_format_app_modifier.eq(&Some(RawMods::Shift)) {
-                key.make_ascii_uppercase();
-                let restart_format_app_hotkey = MyHotkey {
-                    keys: Key::Character(key),
-                    action: Action::RestartFormat,
-                    mods: Modifiers::SHIFT,
-                };
-                data.hotkeys.push(restart_format_app_hotkey);
-            } else if restart_format_app_modifier.eq(&Some(RawMods::Ctrl)) {
-                let restart_format_app_hotkey = MyHotkey {
-                    keys: Key::Character(key),
-                    action: Action::RestartFormat,
-                    mods: Modifiers::CONTROL,
-                };
-                data.hotkeys.push(restart_format_app_hotkey);
-            } else if restart_format_app_modifier.eq(&Some(RawMods::None)) {
-                let restart_format_app_hotkey = MyHotkey {
-                    keys: Key::Escape,
-                    action: Action::RestartFormat,
-                    mods: Modifiers::empty(),
-                };
-                data.hotkeys.push(restart_format_app_hotkey);
-            } else if restart_format_app_modifier.eq(&Some(RawMods::Meta)) {
-                let restart_format_app_hotkey = MyHotkey {
-                    keys: Key::Enter,
-                    action: Action::RestartFormat,
-                    mods: Modifiers::empty(),
-                };
-                data.hotkeys.push(restart_format_app_hotkey);
-            } else {
-                if key.chars().all(|c| c.is_lowercase()) {
-                    let restart_format_app_hotkey = MyHotkey {
-                        keys: Key::Character(key),
-                        action: Action::RestartFormat,
-                        mods: Modifiers::empty(),
-                    };
-                    data.hotkeys.push(restart_format_app_hotkey);
-                } else {
-                    let restart_format_app_hotkey = MyHotkey {
-                        keys: Key::Character(key),
-                        action: Action::RestartFormat,
-                        mods: Modifiers::CAPS_LOCK,
-                    };
-                    data.hotkeys.push(restart_format_app_hotkey);
-                }
+            let mut shortcut = MyHotkey {
+                keys: HashMap::new(),
+            };
+            let key = data.restart_format_app_key.clone();
+            if !key.is_empty() {
+                shortcut
+                    .keys
+                    .insert(Key::Character(key.clone()), Key::Character(key.clone()));
             }
+            if restart_format_app_modifier != None {
+                shortcut.keys.insert(
+                    restart_format_app_modifier.clone().unwrap(),
+                    restart_format_app_modifier.clone().unwrap(),
+                );
+            }
+            data.hotkeys.push(shortcut);
+
+            // //println!("{:?}",data.save_image_key);
+            // if (save_image_modifier.eq(&Some(RawMods::Ctrl))
+            //     && data.save_image_key == "".to_string())
+            //     || (save_image_modifier.eq(&Some(RawMods::Shift))
+            //         && data.save_image_key == "".to_string())
+            // {
+            //     if save_image_modifier.eq(&Some(RawMods::Ctrl)) {
+            //         let save_image_hotkey = MyHotkey {
+            //             keys: Key::Control,
+            //             action: Action::Save,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(save_image_hotkey);
+            //     } else {
+            //         let save_image_hotkey = MyHotkey {
+            //             keys: Key::Shift,
+            //             action: Action::Save,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(save_image_hotkey);
+            //     }
+            // } else if save_image_modifier.eq(&Some(RawMods::Shift)) {
+            //     key.make_ascii_uppercase();
+            //     let save_image_hotkey = MyHotkey {
+            //         keys: Key::Character(key),
+            //         action: Action::Save,
+            //         mods: Modifiers::SHIFT,
+            //     };
+            //     data.hotkeys.push(save_image_hotkey);
+            // } else if save_image_modifier.eq(&Some(RawMods::Ctrl)) {
+            //     let save_image_hotkey = MyHotkey {
+            //         keys: Key::Character(key),
+            //         action: Action::Save,
+            //         mods: Modifiers::CONTROL,
+            //     };
+            //     data.hotkeys.push(save_image_hotkey);
+            // } else if save_image_modifier.eq(&Some(RawMods::None)) {
+            //     let save_image_hotkey = MyHotkey {
+            //         keys: Key::Escape,
+            //         action: Action::Save,
+            //         mods: Modifiers::empty(),
+            //     };
+            //     data.hotkeys.push(save_image_hotkey);
+            // } else if save_image_modifier.eq(&Some(RawMods::Meta)) {
+            //     let save_image_hotkey = MyHotkey {
+            //         keys: Key::Enter,
+            //         action: Action::Save,
+            //         mods: Modifiers::empty(),
+            //     };
+            //     data.hotkeys.push(save_image_hotkey);
+            // } else {
+            //     if key.chars().all(|c| c.is_lowercase()) {
+            //         let save_image_hotkey = MyHotkey {
+            //             keys: Key::Character(key),
+            //             action: Action::Save,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(save_image_hotkey);
+            //     } else {
+            //         let save_image_hotkey = MyHotkey {
+            //             keys: Key::Character(key),
+            //             action: Action::Save,
+            //             mods: Modifiers::CAPS_LOCK,
+            //         };
+
+            //         data.hotkeys.push(save_image_hotkey);
+            //     }
+            // }
+            // let start_image_modifier = match data.start_image_modifier.as_str() {
+            //     "Ctrl" => Some(RawMods::Ctrl),
+            //     "Shift" => Some(RawMods::Shift),
+            //     "Escape" => Some(RawMods::None),
+            //     "Enter" => Some(RawMods::Meta),
+            //     _ => None,
+            // };
+            // let mut key = data.start_image_key.clone();
+            // //println!("{:?}",data.save_image_key);
+            // if (start_image_modifier.eq(&Some(RawMods::Ctrl))
+            //     && data.start_image_key == "".to_string())
+            //     || (start_image_modifier.eq(&Some(RawMods::Shift))
+            //         && data.start_image_key == "".to_string())
+            // {
+            //     if start_image_modifier.eq(&Some(RawMods::Ctrl)) {
+            //         let cancel_image_hotkey = MyHotkey {
+            //             keys: Key::Control,
+            //             action: Action::Cancel,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(cancel_image_hotkey);
+            //     } else {
+            //         let start_image_hotkey = MyHotkey {
+            //             keys: Key::Shift,
+            //             action: Action::Cancel,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(start_image_hotkey);
+            //     }
+            // } else if start_image_modifier.eq(&Some(RawMods::Shift)) {
+            //     key.make_ascii_uppercase();
+            //     let cancel_image_hotkey = MyHotkey {
+            //         keys: Key::Character(key),
+            //         action: Action::Cancel,
+            //         mods: Modifiers::SHIFT,
+            //     };
+            //     data.hotkeys.push(cancel_image_hotkey);
+            // } else if start_image_modifier.eq(&Some(RawMods::Ctrl)) {
+            //     let start_image_hotkey = MyHotkey {
+            //         keys: Key::Character(key),
+            //         action: Action::Cancel,
+            //         mods: Modifiers::CONTROL,
+            //     };
+            //     data.hotkeys.push(start_image_hotkey);
+            // } else if start_image_modifier.eq(&Some(RawMods::None)) {
+            //     let start_image_hotkey = MyHotkey {
+            //         keys: Key::Escape,
+            //         action: Action::Cancel,
+            //         mods: Modifiers::empty(),
+            //     };
+            //     data.hotkeys.push(start_image_hotkey);
+            // } else if start_image_modifier.eq(&Some(RawMods::Meta)) {
+            //     let start_image_hotkey = MyHotkey {
+            //         keys: Key::Enter,
+            //         action: Action::Cancel,
+            //         mods: Modifiers::empty(),
+            //     };
+            //     data.hotkeys.push(start_image_hotkey);
+            // } else {
+            //     if key.chars().all(|c| c.is_lowercase()) {
+            //         let start_image_hotkey = MyHotkey {
+            //             keys: Key::Character(key),
+            //             action: Action::Cancel,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(start_image_hotkey);
+            //     } else {
+            //         let start_image_hotkey = MyHotkey {
+            //             keys: Key::Character(key),
+            //             action: Action::Cancel,
+            //             mods: Modifiers::CAPS_LOCK,
+            //         };
+            //         data.hotkeys.push(start_image_hotkey);
+            //     }
+            // }
+            // //println!("key: {:?}", key);
+            // //let _save_image_hotkey = HotKey::new(save_image_modifier, key);
+            // //let key = Code::from_str(&data.quit_app_key).unwrap();
+
+            // let quit_app_modifier = match data.quit_app_modifier.as_str() {
+            //     "Ctrl" => Some(RawMods::Ctrl),
+            //     "Shift" => Some(RawMods::Shift),
+            //     "Escape" => Some(RawMods::None),
+            //     "Enter" => Some(RawMods::Meta),
+            //     _ => None,
+            // };
+            // //let _quit_app_hotkey = HotKey::new(quit_app_modifier, key);
+            // let mut key = data.quit_app_key.clone();
+            // //println!("{:?}",data.save_image_key);
+            // if (quit_app_modifier.eq(&Some(RawMods::Ctrl)) && data.quit_app_key == "".to_string())
+            //     || (quit_app_modifier.eq(&Some(RawMods::Shift))
+            //         && data.quit_app_key == "".to_string())
+            // {
+            //     if quit_app_modifier.eq(&Some(RawMods::Ctrl)) {
+            //         let quit_image_hotkey = MyHotkey {
+            //             keys: Key::Control,
+            //             action: Action::Quit,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(quit_image_hotkey);
+            //     } else {
+            //         let quit_image_hotkey = MyHotkey {
+            //             keys: Key::Shift,
+            //             action: Action::Quit,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(quit_image_hotkey);
+            //     }
+            // } else if quit_app_modifier.eq(&Some(RawMods::Shift)) {
+            //     key.make_ascii_uppercase();
+            //     let quit_image_hotkey = MyHotkey {
+            //         keys: Key::Character(key),
+            //         action: Action::Quit,
+            //         mods: Modifiers::SHIFT,
+            //     };
+            //     data.hotkeys.push(quit_image_hotkey);
+            // } else if quit_app_modifier.eq(&Some(RawMods::Ctrl)) {
+            //     let quit_image_hotkey = MyHotkey {
+            //         keys: Key::Character(key),
+            //         action: Action::Quit,
+            //         mods: Modifiers::CONTROL,
+            //     };
+            //     data.hotkeys.push(quit_image_hotkey);
+            // } else if quit_app_modifier.eq(&Some(RawMods::None)) {
+            //     let quit_image_hotkey = MyHotkey {
+            //         keys: Key::Escape,
+            //         action: Action::Quit,
+            //         mods: Modifiers::empty(),
+            //     };
+            //     data.hotkeys.push(quit_image_hotkey);
+            // } else if quit_app_modifier.eq(&Some(RawMods::Meta)) {
+            //     let quit_image_hotkey = MyHotkey {
+            //         keys: Key::Enter,
+            //         action: Action::Quit,
+            //         mods: Modifiers::empty(),
+            //     };
+            //     data.hotkeys.push(quit_image_hotkey);
+            // } else {
+            //     if key.chars().all(|c| c.is_lowercase()) {
+            //         let quit_image_hotkey = MyHotkey {
+            //             keys: Key::Character(key),
+            //             action: Action::Quit,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(quit_image_hotkey);
+            //     } else {
+            //         let quit_image_hotkey = MyHotkey {
+            //             keys: Key::Character(key),
+            //             action: Action::Quit,
+            //             mods: Modifiers::CAPS_LOCK,
+            //         };
+            //         data.hotkeys.push(quit_image_hotkey);
+            //     }
+            // }
+
+            // let edit_image_modifier = match data.edit_image_modifier.as_str() {
+            //     "Ctrl" => Some(RawMods::Ctrl),
+            //     "Shift" => Some(RawMods::Shift),
+            //     "Escape" => Some(RawMods::None),
+            //     "Enter" => Some(RawMods::Meta),
+            //     _ => None,
+            // };
+
+            // let mut key = data.edit_image_key.clone();
+
+            // if (edit_image_modifier.eq(&Some(RawMods::Ctrl))
+            //     && data.edit_image_key == "".to_string())
+            //     || (edit_image_modifier.eq(&Some(RawMods::Shift))
+            //         && data.edit_image_key == "".to_string())
+            // {
+            //     if edit_image_modifier.eq(&Some(RawMods::Ctrl)) {
+            //         let edit_image_hotkey = MyHotkey {
+            //             keys: Key::Control,
+            //             action: Action::Edit,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(edit_image_hotkey);
+            //     } else {
+            //         let edit_image_hotkey = MyHotkey {
+            //             keys: Key::Shift,
+            //             action: Action::Edit,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(edit_image_hotkey);
+            //     }
+            // } else if edit_image_modifier.eq(&Some(RawMods::Shift)) {
+            //     key.make_ascii_uppercase();
+            //     let edit_image_hotkey = MyHotkey {
+            //         keys: Key::Character(key),
+            //         action: Action::Edit,
+            //         mods: Modifiers::SHIFT,
+            //     };
+            //     data.hotkeys.push(edit_image_hotkey);
+            // } else if edit_image_modifier.eq(&Some(RawMods::Ctrl)) {
+            //     let edit_image_hotkey = MyHotkey {
+            //         keys: Key::Character(key),
+            //         action: Action::Edit,
+            //         mods: Modifiers::CONTROL,
+            //     };
+            //     data.hotkeys.push(edit_image_hotkey);
+            // } else if edit_image_modifier.eq(&Some(RawMods::Meta)) {
+            //     let edit_image_hotkey = MyHotkey {
+            //         keys: Key::Enter,
+            //         action: Action::Edit,
+            //         mods: Modifiers::empty(),
+            //     };
+            //     data.hotkeys.push(edit_image_hotkey);
+            // } else if edit_image_modifier.eq(&Some(RawMods::None)) {
+            //     let edit_image_hotkey = MyHotkey {
+            //         keys: Key::Escape,
+            //         action: Action::Edit,
+            //         mods: Modifiers::empty(),
+            //     };
+            //     data.hotkeys.push(edit_image_hotkey);
+            // } else {
+            //     if key.chars().all(|c| c.is_lowercase()) {
+            //         let edit_image_hotkey = MyHotkey {
+            //             keys: Key::Character(key),
+            //             action: Action::Edit,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(edit_image_hotkey);
+            //     } else {
+            //         let edit_image_hotkey = MyHotkey {
+            //             keys: Key::Character(key),
+            //             action: Action::Edit,
+            //             mods: Modifiers::CAPS_LOCK,
+            //         };
+            //         data.hotkeys.push(edit_image_hotkey);
+            //     }
+            // }
+            // let restart_app_modifier = match data.restart_app_modifier.as_str() {
+            //     "Ctrl" => Some(RawMods::Ctrl),
+            //     "Shift" => Some(RawMods::Shift),
+            //     "Escape" => Some(RawMods::None),
+            //     "Enter" => Some(RawMods::Meta),
+            //     _ => None,
+            // };
+            // let mut key = data.restart_app_key.clone();
+            // //println!("{:?}",data.save_image_key);
+            // if (restart_app_modifier.eq(&Some(RawMods::Ctrl))
+            //     && data.restart_app_key == "".to_string())
+            //     || (restart_app_modifier.eq(&Some(RawMods::Shift))
+            //         && data.restart_app_key == "".to_string())
+            // {
+            //     if restart_app_modifier.eq(&Some(RawMods::Ctrl)) {
+            //         let restart_app_hotkey = MyHotkey {
+            //             keys: Key::Control,
+            //             action: Action::RestartApp,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(restart_app_hotkey);
+            //     } else {
+            //         let restart_app_hotkey = MyHotkey {
+            //             keys: Key::Shift,
+            //             action: Action::RestartApp,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(restart_app_hotkey);
+            //     }
+            // } else if restart_app_modifier.eq(&Some(RawMods::Shift)) {
+            //     key.make_ascii_uppercase();
+            //     let restart_app_hotkey = MyHotkey {
+            //         keys: Key::Character(key),
+            //         action: Action::RestartApp,
+            //         mods: Modifiers::SHIFT,
+            //     };
+            //     data.hotkeys.push(restart_app_hotkey);
+            // } else if restart_app_modifier.eq(&Some(RawMods::Ctrl)) {
+            //     let restart_app_hotkey = MyHotkey {
+            //         keys: Key::Character(key),
+            //         action: Action::RestartApp,
+            //         mods: Modifiers::CONTROL,
+            //     };
+            //     data.hotkeys.push(restart_app_hotkey);
+            // } else if restart_app_modifier.eq(&Some(RawMods::None)) {
+            //     let restart_app_hotkey = MyHotkey {
+            //         keys: Key::Escape,
+            //         action: Action::RestartApp,
+            //         mods: Modifiers::empty(),
+            //     };
+            //     data.hotkeys.push(restart_app_hotkey);
+            // } else if restart_app_modifier.eq(&Some(RawMods::Meta)) {
+            //     let restart_app_hotkey = MyHotkey {
+            //         keys: Key::Enter,
+            //         action: Action::RestartApp,
+            //         mods: Modifiers::empty(),
+            //     };
+            //     data.hotkeys.push(restart_app_hotkey);
+            // } else {
+            //     if key.chars().all(|c| c.is_lowercase()) {
+            //         let restart_app_hotkey = MyHotkey {
+            //             keys: Key::Character(key),
+            //             action: Action::RestartApp,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(restart_app_hotkey);
+            //     } else {
+            //         let restart_app_hotkey = MyHotkey {
+            //             keys: Key::Character(key),
+            //             action: Action::RestartApp,
+            //             mods: Modifiers::CAPS_LOCK,
+            //         };
+            //         data.hotkeys.push(restart_app_hotkey);
+            //     }
+            // }
+
+            // let restart_format_app_modifier = match data.restart_format_app_modifier.as_str() {
+            //     "Ctrl" => Some(RawMods::Ctrl),
+            //     "Shift" => Some(RawMods::Shift),
+            //     "Escape" => Some(RawMods::None),
+            //     "Enter" => Some(RawMods::Meta),
+            //     _ => None,
+            // };
+            // let mut key = data.restart_format_app_key.clone();
+            // //println!("{:?}",data.save_image_key);
+            // if (restart_format_app_modifier.eq(&Some(RawMods::Ctrl))
+            //     && data.restart_format_app_key == "".to_string())
+            //     || (restart_format_app_modifier.eq(&Some(RawMods::Shift))
+            //         && data.restart_format_app_key == "".to_string())
+            // {
+            //     if restart_format_app_modifier.eq(&Some(RawMods::Ctrl)) {
+            //         let restart_format_app_hotkey = MyHotkey {
+            //             keys: Key::Control,
+            //             action: Action::RestartFormat,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(restart_format_app_hotkey);
+            //     } else {
+            //         let restart_format_app_hotkey = MyHotkey {
+            //             keys: Key::Shift,
+            //             action: Action::RestartFormat,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(restart_format_app_hotkey);
+            //     }
+            // } else if restart_format_app_modifier.eq(&Some(RawMods::Shift)) {
+            //     key.make_ascii_uppercase();
+            //     let restart_format_app_hotkey = MyHotkey {
+            //         keys: Key::Character(key),
+            //         action: Action::RestartFormat,
+            //         mods: Modifiers::SHIFT,
+            //     };
+            //     data.hotkeys.push(restart_format_app_hotkey);
+            // } else if restart_format_app_modifier.eq(&Some(RawMods::Ctrl)) {
+            //     let restart_format_app_hotkey = MyHotkey {
+            //         keys: Key::Character(key),
+            //         action: Action::RestartFormat,
+            //         mods: Modifiers::CONTROL,
+            //     };
+            //     data.hotkeys.push(restart_format_app_hotkey);
+            // } else if restart_format_app_modifier.eq(&Some(RawMods::None)) {
+            //     let restart_format_app_hotkey = MyHotkey {
+            //         keys: Key::Escape,
+            //         action: Action::RestartFormat,
+            //         mods: Modifiers::empty(),
+            //     };
+            //     data.hotkeys.push(restart_format_app_hotkey);
+            // } else if restart_format_app_modifier.eq(&Some(RawMods::Meta)) {
+            //     let restart_format_app_hotkey = MyHotkey {
+            //         keys: Key::Enter,
+            //         action: Action::RestartFormat,
+            //         mods: Modifiers::empty(),
+            //     };
+            //     data.hotkeys.push(restart_format_app_hotkey);
+            // } else {
+            //     if key.chars().all(|c| c.is_lowercase()) {
+            //         let restart_format_app_hotkey = MyHotkey {
+            //             keys: Key::Character(key),
+            //             action: Action::RestartFormat,
+            //             mods: Modifiers::empty(),
+            //         };
+            //         data.hotkeys.push(restart_format_app_hotkey);
+            //     } else {
+            //         let restart_format_app_hotkey = MyHotkey {
+            //             keys: Key::Character(key),
+            //             action: Action::RestartFormat,
+            //             mods: Modifiers::CAPS_LOCK,
+            //         };
+            //         data.hotkeys.push(restart_format_app_hotkey);
+            //     }
+            // }
 
             let format_window = WindowDesc::new(window_format::build_ui())
                 .transparent(false)

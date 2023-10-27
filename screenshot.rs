@@ -1,15 +1,9 @@
 use crate::MyRadio;
 use arboard::ImageData;
-use clipboard::{ClipboardContext, ClipboardProvider};
-use druid_shell::Clipboard;
-use image::{DynamicImage, EncodableLayout, ImageBuffer, ImageOutputFormat, Rgba};
+use image::{EncodableLayout, ImageBuffer, Rgba};
 use scrap::Capturer;
 use screenshots::{self, Screen};
-use std::{
-    io::Cursor,
-    process::Command,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 pub fn screen(
     format: MyRadio,

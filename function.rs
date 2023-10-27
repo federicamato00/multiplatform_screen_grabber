@@ -121,7 +121,7 @@ pub(crate) fn save_screen(data: &mut drawing_area::AppData, size: Size) {
         data.is_dragging = false;
         data.is_selecting = false;
         data.modify = false;
-        data.is_pressed = true;
+        data.is_found = false;
         data.hide_buttons = false;
         data.save = false;
         //println!("{:?}",data.last_key_event);
