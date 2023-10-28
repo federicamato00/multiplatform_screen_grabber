@@ -589,7 +589,9 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
 
         match event {
             Event::KeyDown(key_event) => {
+                
                 if !data.tasti.contains_key(&key_event.key) {
+                    data.is_found=false;
                     data.tasti.insert(key_event.key.clone(), key_event.key.clone());
                     data.count+=1;
                     
@@ -602,20 +604,21 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 data.attivazione.insert(key_event.key.clone(), key_event.key.clone());
                 data.tasti.remove(&key_event.key);
                 data.count-=1;
+                
 
             }
             
-            if data.count==0 && !data.attivazione.is_empty(){
-                let mut found= false;
-                for key in  &data.hotkeys.get(0).unwrap().keys 
+            if data.count<=0 && !data.attivazione.is_empty(){
+                data.count=0;
+                // println!("{:?}, {:?}",data.attivazione, data.count);
+                let mut found= true;
+                for key in  data.attivazione.keys()
                 {
-                    if !data.attivazione.contains_key(key.0) {
+                    if !data.hotkeys.get(0).unwrap().keys.contains_key(key){
                         found=false;
                         break;
                     }
-                    else {
-                        found=true;
-                    }
+                    
                 }
                 if found==true {
                     if data.start_position != None
@@ -625,20 +628,23 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         {
                             data.hide_buttons = true;
                             data.save = true;
+                            data.attivazione=HashMap::new();
+                            data.is_found=true;
                             //function::save_screen(data, ctx.size());
                             //ctx.submit_command(Command::new(SAVE, "", Target::Global));
                             data.last_key_event = Some(key_event.clone());
                         }
                 }
-                for key in  &data.hotkeys.get(1).unwrap().keys 
+                let mut found= true;
+                if !data.is_found
                 {
-                    if !data.attivazione.contains_key(key.0) {
+                    for key in  data.attivazione.keys ()
+                {
+                    if !data.hotkeys.get(1).unwrap().keys.contains_key(key) {
                         found=false;
                         break;
                     }
-                    else {
-                        found=true;
-                    }
+                    
                 }
                 if found==true {
                         data.start_position = None;
@@ -651,34 +657,34 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                         // ctx.request_paint();
                         data.is_found=true;
+                        data.attivazione=HashMap::new();
+           
                         data.hide_buttons = true;
                         data.last_key_event = Some(key_event.clone());
 
                     
-                }
+                }}
+                let mut found= true;
                 if !data.is_found
-                {for key in  &data.hotkeys.get(2).unwrap().keys 
+                {for key in  data.attivazione.keys()
                 {
-                    if !data.attivazione.contains_key(key.0) {
+                    if !data.hotkeys.get(2).unwrap().keys.contains_key(key) {
                         found=false;
                         break;
                     }
-                    else {
-                        found=true;
-                    }
+                    
                 }
                 if found==true {
                     ctx.submit_command(druid::commands::QUIT_APP);
                 }
                 }
-                for key in  &data.hotkeys.get(3).unwrap().keys
+                let mut found= true;
+                if !data.is_found
+                {for key in  data.attivazione.keys()
                 {
-                    if !data.attivazione.contains_key(key.0) {
+                    if !data.hotkeys.get(3).unwrap().keys.contains_key(key){
                         found=false;
                         break;
-                    }
-                    else {
-                        found=true;
                     }
                 }
                 if found==true {
@@ -695,19 +701,19 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                             }
                             data.is_found = true;
                             data.hide_buttons = true;
+                            data.attivazione=HashMap::new();
                             data.last_key_event = Some(key_event.clone());
                         }
-                }
+                }}
+                let mut found= true;
                 if !data.is_found
-                {for key in  &data.hotkeys.get(4).unwrap().keys 
+                {for key in data.attivazione.keys() 
                 {
-                    if !data.attivazione.contains_key(key.0) {
+                    if !data.hotkeys.get(4).unwrap().keys.contains_key(key) {
                         found=false;
                         break;
                     }
-                    else {   
-                        found=true;
-                    }
+                    
                 }
                 if found==true {
 
@@ -719,6 +725,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                     data.is_selecting = false;
                     data.modify = false;
                     data.hotkeys = Vec::new();
+                    data.attivazione=HashMap::new();
                     data.is_found = true;
                     data.last_key_event = None;
                     data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
@@ -736,16 +743,15 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         
 
                 }}
+                let mut found= true;
                 if !data.is_found
-                {for key in  &data.hotkeys.get(5).unwrap().keys 
+                {for key in  data.attivazione.keys()
                 {
-                    if !data.attivazione.contains_key(key.0) {
+                    if !data.hotkeys.get(5).unwrap().keys.contains_key(key) {
                         found=false;
                         break;
                     }
-                    else {
-                        found=true;
-                    }
+                    
                 }
                 if found==true {
                     data.start_position = None;
@@ -757,6 +763,8 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.modify = false;
                         data.is_found = true;
                         data.hide_buttons = false;
+                        data.attivazione=HashMap::new();
+                        
                         data.last_key_event = Some(key_event.clone());
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                         data.is_found=true;
@@ -773,8 +781,8 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
 
                 
             }
-            data.attivazione=HashMap::new();
-            data.is_found=false;
+            data.count=0;
+            
             
 
             //     println!("{:?}", key_event);       
