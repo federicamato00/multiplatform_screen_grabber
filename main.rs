@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
 use druid::{LocalizedString, WindowId};
+use image::ImageBuffer;
 use window_format::MyRadio;
 
-use druid::{AppLauncher, Point, Rect, WindowDesc};
+use druid::{AppLauncher, Rect, WindowDesc};
 
 use druid_shell::keyboard_types::Key;
 
@@ -33,10 +34,10 @@ fn main() {
         restart_format_app_key: (Key::Character("".to_string())).to_string(),
         hotkeys: Vec::new(),
         is_selecting: false,
-        start_position: Some(Point::ZERO),
-        end_position: Some(Point::ZERO),
-        start_position_to_display: Some(Point::ZERO),
-        end_position_to_display: Some(Point::ZERO),
+        start_position: None,
+        end_position: None,
+        start_position_to_display: None,
+        end_position_to_display: None,
         modify: false,
         is_dragging: false,
         rect: Rect::new(0.0, 0.0, 0.0, 0.0),
@@ -53,6 +54,7 @@ fn main() {
         tasti: HashMap::new(),
         attivazione: HashMap::new(),
         count: 0,
+        myimage: ImageBuffer::new(0, 0),
     };
 
     AppLauncher::with_window(main_window)

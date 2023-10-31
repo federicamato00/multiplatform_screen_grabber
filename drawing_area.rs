@@ -6,7 +6,7 @@ use druid::widget::Button;
 use druid::widget::Controller;
 use druid::widget::Flex;
 use druid::Color;
-use druid::Command;
+
 use druid::Data;
 use druid::Env;
 use druid::Event;
@@ -16,9 +16,8 @@ use druid::PaintCtx;
 use druid::Point;
 use druid::Rect;
 use druid::RenderContext;
-use druid::Selector;
 use druid::Size;
-use druid::Target;
+
 use druid::Widget;
 use druid::WidgetExt;
 use druid::WindowDesc;
@@ -30,8 +29,11 @@ use druid::widget::Padding;
 use druid::widget::ViewSwitcher;
 use druid_shell::keyboard_types::Key;
 use druid_shell::KeyEvent;
+use image::ImageBuffer;
+use image::Rgba;
 
 use crate::function;
+use crate::screenshot;
 use crate::shortkeys_window;
 use crate::window_format;
 use druid::Lens;
@@ -67,6 +69,8 @@ pub struct AppData {
     pub(crate) hide_buttons: bool,
     pub(crate) save: bool,
     #[data(ignore)]
+    pub(crate) myimage: ImageBuffer<Rgba<u8>, Vec<u8>>,
+    #[data(ignore)]
     pub(crate) format_window_id: WindowId,
     #[data(ignore)]
     pub(crate) shortkeys_window_id: WindowId,
@@ -85,7 +89,7 @@ pub struct AppData {
 
 
 // Definisci la struttura della tua hotkey
-pub const SAVE: Selector<&'static str> = Selector::new("SAVE");
+
 #[derive(Clone, PartialEq, Debug)]
 pub struct MyHotkey {
     pub(crate) keys: HashMap<Key,Key>,
@@ -109,7 +113,6 @@ impl Widget<AppData> for DrawingArea {
         //println!("{:?}", event);
         match event {
             Event::WindowConnected => {
-                println!("ciao2");
                 // Richiedi il focus quando la finestra è connessa.
                 data.main_window_id = ctx.window_id();
                 if data.modify == false {}
@@ -123,108 +126,6 @@ impl Widget<AppData> for DrawingArea {
                 //println!("size window {:?}",size);
                 
             }
-            // Event::KeyDown(key_event) => {
-            //     if data.hide_buttons {
-            //         if let Some(last_event) = data.last_key_event.clone() {
-            //             let key = match last_event.mods {
-            //                 Mod::CONTROL => Key::Control,
-            //                 Mod::SHIFT => Key::Shift,
-            //                 Mod::META => Key::Meta,
-            //                 Mod::CAPS_LOCK => Key::CapsLock,
-            //                 _ => Key::Fn,
-            //             };
-
-            //             if key == (key_event.key) && key_event.key != last_event.key {
-            //                 data.is_pressed = true;
-            //             } else {
-            //                 data.is_pressed = false;
-            //             }
-            //         }
-
-            //         if data.is_pressed != true {
-            //             if data
-            //                 .hotkeys
-            //                 .get(2)
-            //                 .unwrap()
-            //                 .matches(key_event.mods, key_event.key.clone())
-            //                 && !data.is_pressed
-            //             {
-            //                 // Chiudi la finestra
-            //                 ctx.submit_command(druid::commands::QUIT_APP);
-            //             } else if data
-            //                 .hotkeys
-            //                 .get(4)
-            //                 .unwrap()
-            //                 .matches(key_event.mods, key_event.key.clone())
-            //                 && !data.is_pressed
-            //             {
-            //                 data.start_position = None;
-            //                 data.end_position = None;
-            //                 data.start_position_to_display = None;
-            //                 data.end_position_to_display = None;
-            //                 data.is_dragging = false;
-            //                 data.is_selecting = false;
-            //                 data.modify = false;
-            //                 data.hotkeys = Vec::new();
-            //                 data.is_pressed = true;
-            //                 data.hide_buttons = false;
-            //                 data.last_key_event = Some(key_event.clone());
-            //                 data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-            //                 ctx.submit_command(
-            //                     druid::commands::HIDE_WINDOW.to(data.main_window_id),
-            //                 );
-            //                 ctx.submit_command(
-            //                     druid::commands::SHOW_WINDOW.to(data.shortkeys_window_id),
-            //                 );
-            //             } else if data
-            //                 .hotkeys
-            //                 .get(5)
-            //                 .unwrap()
-            //                 .matches(key_event.mods, key_event.key.clone())
-            //                 && data.is_pressed != true
-            //             {
-            //                 data.start_position = None;
-            //                 data.end_position = None;
-            //                 data.start_position_to_display = None;
-            //                 data.end_position_to_display = None;
-            //                 data.is_dragging = false;
-            //                 data.is_selecting = false;
-            //                 data.modify = false;
-            //                 data.is_pressed = false;
-            //                 data.hide_buttons = false;
-            //                 data.last_key_event = Some(key_event.clone());
-            //                 data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-            //                 ctx.submit_command(
-            //                     druid::commands::HIDE_WINDOW.to(data.main_window_id),
-            //                 );
-            //                 ctx.submit_command(
-            //                     druid::commands::SHOW_WINDOW.to(data.format_window_id),
-            //                 );
-            //             } else if data
-            //                 .hotkeys
-            //                 .get(0)
-            //                 .unwrap()
-            //                 .matches(key_event.mods, key_event.key.clone())
-            //                 && !data.is_pressed
-            //             {
-            //                 println!("ciao stai per salvare");
-            //                 data.hide_buttons = true;
-            //                 let size = ctx.window().get_size();
-            //                 function::save_screen(data, size);
-            //                 data.last_key_event = Some(key_event.clone());
-            //                 //ctx.request_paint();
-            //             } else {
-            //                 data.is_pressed = true;
-            //                 data.hide_buttons = false;
-            //                 data.last_key_event = Some(key_event.clone());
-            //             }
-            //         } else {
-            //             data.is_pressed = false;
-            //             data.hide_buttons = false;
-            //             data.last_key_event = None;
-            //         }
-            //     }
-            // }
             Event::WindowCloseRequested => {
                 // Qui puoi gestire l'evento di chiusura della finestra.
                 // Ad esempio, potresti voler salvare i dati dell'applicazione o mostrare un messaggio all'utente.
@@ -232,6 +133,7 @@ impl Widget<AppData> for DrawingArea {
             }
 
             druid::Event::MouseDown(mouse_event) => {
+                
                 if data.modify == true && data.is_dragging == false {
                     data.start_position = None;
                     data.end_position = None;
@@ -371,10 +273,6 @@ impl Widget<AppData> for DrawingArea {
                             data.end_position = Some(coord);
                         }
 
-                        // questa parte qua bisogna implementarla anche per il caso os="windows" tenendo conto che per quel caso
-                        // data.start_position_to_display corrispondono ai dati non fattorizzati e così anche per end_position
-                        // da considerare anche che pos per macos corrisponde alla fattorizzazione che con windows si fa con il fattore scala
-                        // per cui coord bisogna adeguarlo con i dati fattorizzati con scale_factor_x
                         if ctx.is_active() {
                             if let Some(handle) = &data.where_dragging.clone() {
                                 let pos = ctx.to_screen(druid::Point::new(
@@ -398,10 +296,6 @@ impl Widget<AppData> for DrawingArea {
                     ctx.request_paint();
                 }
             }
-
-            druid::Event::Command(cmd) if cmd.is(SAVE) && data.save == true => {
-                function::save_screen(data, ctx.size());
-            }
             druid::Event::MouseUp(mouse_event) => {
                 if data.is_dragging == true {
                     data.where_dragging = None;
@@ -410,6 +304,7 @@ impl Widget<AppData> for DrawingArea {
                 }
                 if data.modify == false && data.is_dragging == false {
                     if mouse_event.button == MouseButton::Left {
+                        
                         data.is_selecting = false;
                         data.modify = true;
                         //ctx.request_paint();
@@ -474,11 +369,16 @@ impl Widget<AppData> for DrawingArea {
                                     data.start_position.unwrap(),
                                     data.end_position.unwrap(),
                                 );
+                                
+                                
+                                
                             }
                         }
                     }
+                    
                     data.hide_buttons = false;
                 }
+                data.myimage= screenshot::screen_new(data.rect);
             }
 
             _ => {}
@@ -504,9 +404,7 @@ impl Widget<AppData> for DrawingArea {
         if data.is_dragging == true && data.is_selecting == true && data.save != true {
             ctx.request_paint();
         }
-        if data.save == true {
-            ctx.submit_command(Command::new(SAVE, "", Target::Global));
-        }
+
     }
 
     fn layout(
@@ -598,8 +496,12 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 }
 
             }
+            Event::WindowCloseRequested => {
+                ctx.submit_command(druid::commands::QUIT_APP);
+            }
             Event::KeyUp(key_event) => {
-            
+                println!("{:?}",data.tasti);
+                println!("{:?}",data.hotkeys);
             if data.tasti.contains_key(&key_event.key) && !data.attivazione.contains_key(&key_event.key) {
                 data.attivazione.insert(key_event.key.clone(), key_event.key.clone());
                 data.tasti.remove(&key_event.key);
@@ -608,12 +510,15 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
 
             }
             
+            
             if data.count<=0 && !data.attivazione.is_empty(){
                 data.count=0;
                 // println!("{:?}, {:?}",data.attivazione, data.count);
+                //save hotkey
                 let mut found= true;
                 for key in  data.attivazione.keys()
                 {
+                   
                     if !data.hotkeys.get(0).unwrap().keys.contains_key(key){
                         found=false;
                         break;
@@ -623,18 +528,20 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 if found==true {
                     if data.start_position != None
                             && data.end_position != None
-                            && data.start_position != Some(Point::new(0., 0.))
-                            && data.end_position != Some(Point { x: 0., y: 0. })
                         {
-                            data.hide_buttons = true;
+                            
+                            //data.hide_buttons = true;
                             data.save = true;
                             data.attivazione=HashMap::new();
                             data.is_found=true;
+                            screenshot::save_screen_new(data.radio_group, data.label.clone(), data.myimage.clone());
                             //function::save_screen(data, ctx.size());
                             //ctx.submit_command(Command::new(SAVE, "", Target::Global));
                             data.last_key_event = Some(key_event.clone());
                         }
                 }
+
+                //start hotkeys
                 let mut found= true;
                 if !data.is_found
                 {
@@ -664,6 +571,8 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
 
                     
                 }}
+
+                // quit hotkey 
                 let mut found= true;
                 if !data.is_found
                 {for key in  data.attivazione.keys()
@@ -678,6 +587,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                     ctx.submit_command(druid::commands::QUIT_APP);
                 }
                 }
+                //edit hotkey
                 let mut found= true;
                 if !data.is_found
                 {for key in  data.attivazione.keys()
@@ -689,8 +599,8 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 }
                 if found==true {
                         //sto modificando
-                        if data.start_position != Some(Point { x: 0., y: 0. })
-                            && data.end_position != Some(Point { x: 0., y: 0. })
+                        if data.start_position != None
+                            && data.end_position != None
                         {
                             if let (Some(_start), Some(_end)) =
                                 (data.start_position, data.end_position)
@@ -705,6 +615,8 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                             data.last_key_event = Some(key_event.clone());
                         }
                 }}
+
+                //restart from shortkeys
                 let mut found= true;
                 if !data.is_found
                 {for key in data.attivazione.keys() 
@@ -729,8 +641,9 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                     data.is_found = true;
                     data.last_key_event = None;
                     data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+                    //non mi funziona più con close_window da controllare
                     ctx.submit_command(
-                        druid::commands::CLOSE_WINDOW.to(ctx.window_id()),
+                        druid::commands::HIDE_WINDOW.to(ctx.window_id()),
                     );
                     let shortkeys_window = WindowDesc::new(shortkeys_window::ui_builder())    
                     .transparent(false)
@@ -743,6 +656,8 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         
 
                 }}
+
+                //restart from format hotkey
                 let mut found= true;
                 if !data.is_found
                 {for key in  data.attivazione.keys()
@@ -768,7 +683,8 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.last_key_event = Some(key_event.clone());
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                         data.is_found=true;
-                        ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
+                        //non mi funziona più con close_window da controllare
+                        ctx.submit_command(druid::commands::HIDE_WINDOW.to(ctx.window_id()));
                         let format_window = WindowDesc::new(window_format::build_ui())
                             .transparent(false)
                             .title("Choose the format. Default is .png")
@@ -776,6 +692,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                             .set_always_on_top(true)
                             .show_titlebar(true);
                         ctx.new_window(format_window);
+                        
                                         
                 }}
 
@@ -783,183 +700,12 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
             }
             data.count=0;
             
-            
-
-            //     println!("{:?}", key_event);       
-            //     if let Some(last_event) = data.last_key_event.clone() {
-            //         let key = match last_event.mods {
-            //             Mod::CONTROL => Key::Control,
-            //             Mod::SHIFT => Key::Shift,
-            //             Mod::META => Key::Meta,
-            //             Mod::CAPS_LOCK => Key::CapsLock,
-
-            //             _ => Key::Fn,
-            //         };
-                    
-            //         if key == (key_event.key) && key_event.key != last_event.key {
-            //             data.is_pressed = true;
-            //         } else {
-            //             data.is_pressed = false;
-            //         }
-            //     }
-                
-                
-            //     if data.is_pressed != true {
-            //         if data
-            //             .hotkeys
-            //             .get(2)
-            //             .unwrap()
-            //             .matches(key_event.mods, key_event.key.clone())
-            //             && !data.is_pressed
-            //         {
-            //             // Chiudi la finestra
-            //             ctx.submit_command(druid::commands::QUIT_APP);
-            //         } else if data
-            //             .hotkeys
-            //             .get(4)
-            //             .unwrap()
-            //             .matches(key_event.mods, key_event.key.clone())
-            //             && !data.is_pressed
-            //         {
-            //             data.start_position = None;
-            //             data.end_position = None;
-            //             data.start_position_to_display = None;
-            //             data.end_position_to_display = None;
-            //             data.is_dragging = false;
-            //             data.is_selecting = false;
-            //             data.modify = false;
-            //             data.hotkeys = Vec::new();
-            //             data.is_pressed = true;
-            //             data.hide_buttons = false;
-            //             data.last_key_event = Some(key_event.clone());
-            //             data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-            //             ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
-            //             let format_window = WindowDesc::new(window_format::build_ui())
-            //                 .transparent(false)
-            //                 .title("Choose the format. Default is .png")
-            //                 .window_size(Size::new(200.0, 200.0))
-            //                 .set_always_on_top(true)
-            //                 .show_titlebar(false);
-            //             ctx.new_window(format_window);
-            //         } else if data
-            //             .hotkeys
-            //             .get(3)
-            //             .unwrap()
-            //             .matches(key_event.mods, key_event.key.clone())
-            //             && !data.is_pressed
-            //         {
-            //             //sto modificando
-            //             if data.start_position != Some(Point { x: 0., y: 0. })
-            //                 && data.end_position != Some(Point { x: 0., y: 0. })
-            //             {
-            //                 if let (Some(_start), Some(_end)) =
-            //                     (data.start_position, data.end_position)
-            //                 {
-            //                     // Calculate the selected rectangle
-            //                     data.is_dragging = true;
-            //                     data.is_selecting = true;
-            //                 }
-            //                 data.is_pressed = true;
-            //                 data.hide_buttons = true;
-            //                 data.last_key_event = Some(key_event.clone());
-            //             }
-            //         } else if data
-            //             .hotkeys
-            //             .get(5)
-            //             .unwrap()
-            //             .matches(key_event.mods, key_event.key.clone())
-            //             && data.is_pressed != true
-            //         {
-            //             data.start_position = None;
-            //             data.end_position = None;
-            //             data.start_position_to_display = None;
-            //             data.end_position_to_display = None;
-            //             data.is_dragging = false;
-            //             data.is_selecting = false;
-            //             data.modify = false;
-            //             data.is_pressed = false;
-
-            //             data.hide_buttons = false;
-            //             data.last_key_event = Some(key_event.clone());
-            //             data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-            //             ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
-            //             let format_window = WindowDesc::new(window_format::build_ui())
-            //                 .transparent(false)
-            //                 .title("Choose the format. Default is .png")
-            //                 .window_size(Size::new(200.0, 200.0))
-            //                 .set_always_on_top(true)
-            //                 .show_titlebar(false);
-            //             ctx.new_window(format_window);
-            //         } else if data
-            //             .hotkeys
-            //             .get(1)
-            //             .unwrap()
-            //             .matches(key_event.mods, key_event.key.clone())
-            //             && !data.is_pressed
-            //         {
-            //             data.start_position = None;
-            //             data.end_position = None;
-            //             data.start_position_to_display = None;
-            //             data.end_position_to_display = None;
-            //             data.is_dragging = false;
-            //             data.is_selecting = false;
-            //             data.modify = false;
-            //             data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-            //             // ctx.request_paint();
-            //             data.is_pressed = true;
-            //             data.hide_buttons = true;
-            //             data.last_key_event = Some(key_event.clone());
-
-            //             //println!("sei in cancel {:?}", data.last_key_event);
-            //         } else if data
-            //             .hotkeys
-            //             .get(0)
-            //             .unwrap()
-            //             .matches(key_event.mods, key_event.key.clone())
-            //             && !data.is_pressed
-            //         {
-            //             if data.start_position != None
-            //                 && data.end_position != None
-            //                 && data.start_position != Some(Point::new(0., 0.))
-            //                 && data.end_position != Some(Point { x: 0., y: 0. })
-            //             {
-            //                 data.hide_buttons = true;
-            //                 data.save = true;
-            //                 //function::save_screen(data, ctx.size());
-            //                 //ctx.submit_command(Command::new(SAVE, "", Target::Global));
-            //                 data.last_key_event = Some(key_event.clone());
-            //             }
-            //             //ctx.request_paint();
-            //         } else {
-            //             data.is_pressed = true;
-            //             data.hide_buttons = false;
-            //             data.last_key_event = Some(key_event.clone());
-            //         }
-            //     } else {
-            //         data.is_pressed = false;
-            //         data.hide_buttons = false;
-            //         data.last_key_event = None;
-            //     }
-             }
+        }
             _ => {}
         }
         child.event(ctx, event, data, env);
     }
-    // fn lifecycle(
-    //     &mut self,
-    //     _child: &mut W,
-    //     ctx: &mut druid::LifeCycleCtx,
-    //     event: &druid::LifeCycle,
-    //     data: &AppData,
-    //     env: &Env,
-    // ) {
-    //     // match event {
-    //     //     druid::LifeCycle::ViewContextChanged(_) => {
-    //     //         if()
-    //     //     }
-    //     //     _ => {}
-    //     // }
-    // }
+
 }
 pub(crate) fn build_ui() -> impl Widget<AppData> {
     let skip_panel = ViewSwitcher::new(
@@ -987,9 +733,9 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                 ))
                                 .with_child(Button::new("Save Screen").on_click(
                                     |_ctx: &mut EventCtx, data: &mut AppData, _: &Env| {
-                                        data.hide_buttons = true;
-                                        data.save = true;
-                                        // function::save_screen(data, ctx.size());
+                                        //data.hide_buttons = true;
+                                        //data.save = true;
+                                        screenshot::save_screen_new(data.radio_group, data.label.clone(), data.myimage.clone());
                                     },
                                 ))
                                 .with_child(Button::new("Close").on_click(
@@ -1020,8 +766,9 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         data.is_found = false;
                                         data.last_key_event = None;
                                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+                                        //non mi funziona più con close_window da controllare
                                         ctx.submit_command(
-                                            druid::commands::CLOSE_WINDOW.to(ctx.window_id()),
+                                            druid::commands::HIDE_WINDOW.to(ctx.window_id()),
                                         );
                                         let shortkeys_window = WindowDesc::new(shortkeys_window::ui_builder())    
                                         .transparent(false)
@@ -1043,15 +790,19 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         data.is_found = false;
                                         data.last_key_event = None;
                                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+                                        // non mi funziona più con close_window da controllare
                                         ctx.submit_command(
-                                            druid::commands::CLOSE_WINDOW.to(ctx.window_id()),
+                                            druid::commands::HIDE_WINDOW.to(ctx.window_id()),
                                         );
                                         let format_window = WindowDesc::new(window_format::build_ui())    
                                         .transparent(false)
                                         .title("Choose the format. Default is .png")    
                                         .window_size(Size::new(200.0, 200.0))
-                                        .set_always_on_top(true)    .show_titlebar(true);
+                                        .set_always_on_top(true)    .show_titlebar(true)
+                                        ;
+                                        
                                         ctx.new_window(format_window);
+
                                     },
                                 )),
                         )
@@ -1059,11 +810,10 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                             "Per uscire dalla modalità edit, premi fuori dall'area disegnata",
                         )),
                 )
-                .background(BackgroundBrush::Color(Color::BLACK))
                 .fix_size(
                     Display::primary().expect("erro").width() as f64,
                     Display::primary().expect("erro").height() as f64,
-                ),
+                ).background(BackgroundBrush::Color(Color::TRANSPARENT)),
             ),
             true => Box::new(Flex::column().with_child(DrawingArea)),
         }

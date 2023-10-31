@@ -1,68 +1,100 @@
 use crate::MyRadio;
 use arboard::ImageData;
+use druid::Rect;
 use image::{EncodableLayout, ImageBuffer, Rgba};
-use scrap::Capturer;
 use screenshots::{self, Screen};
-use std::sync::{Arc, Mutex};
 
-pub fn screen(
+pub(crate) fn screen_new(rect: Rect) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+    let screen = Screen::from_point(0, 0).unwrap();
+    let image = screen
+        .capture_area(
+            rect.x0 as i32 + 1,
+            rect.y0 as i32 + 1,
+            ((rect.x1 - rect.x0) - 1.5) as u32,
+            ((rect.y1 - rect.y0) - 1.5) as u32,
+        )
+        .unwrap();
+    image
+}
+
+pub(crate) fn save_screen_new(
     format: MyRadio,
-    mut _capturer: Capturer,
-    _width: u32,
-    _height: u32,
-    start_position: Arc<Mutex<Option<(f64, f64)>>>,
-    end_position: Arc<Mutex<Option<(f64, f64)>>>,
     name: String,
+    image: ImageBuffer<Rgba<u8>, Vec<u8>>,
 ) {
     let new_format = format;
     let name_capture = name;
-
-    // altri sistemi operativi è l'unico che non da problemi di distorsione, controllare se su windows funziona ugualmente e in tal caso sostituire
-    if let (Some((x1, y1)), Some((x2, y2))) = (
-        *start_position.lock().unwrap(),
-        *end_position.lock().unwrap(),
-    ) {
-        let form = match new_format {
-            MyRadio::Png => "png",
-            MyRadio::Jpeg => "jpeg",
-            MyRadio::Bmp => "bmp",
-        };
-        // let screens = Screen::all().unwrap();
-
-        // for screen in screens {
-        //     let image = screen.capture().unwrap();
-        //     image
-        //         .save("original.".to_owned()+form)
-        //         .unwrap();
-
-        // }
-
-        let screen = Screen::from_point(0, 0).unwrap();
-        // let original=screen.capture().unwrap();
-        // original.save("original.".to_owned()+form.clone()).unwrap();
-        let image: ImageBuffer<Rgba<u8>, Vec<u8>> = screen
-            .capture_area(
-                x1 as i32 + 1,
-                y1 as i32 + 1,
-                ((x2 - x1) - 1.5) as u32,
-                ((y2 - y1) - 1.5) as u32,
-            )
-            .unwrap();
-        image
-            .save(name_capture.to_owned() + "." + form.clone())
-            .unwrap();
-        // let name = name_capture.to_owned() + "." + form.clone();
-        let clipboard = &mut arboard::Clipboard::new().unwrap();
-
-        let bytes = image.as_bytes();
-        let img_data = ImageData {
-            width: image.width() as usize,
-            height: image.height() as usize,
-            bytes: bytes.as_ref().into(),
-        };
-        clipboard.set_image(img_data).unwrap();
+    let form = match new_format {
+        MyRadio::Png => "png",
+        MyRadio::Jpeg => "jpeg",
+        MyRadio::Gif => "gif",
+    };
+    let mut myimage = image;
+    if myimage.width() == 0 && myimage.height() == 0 {
+        myimage = Screen::from_point(0, 0).unwrap().capture().unwrap();
     }
+    myimage
+        .save(name_capture.to_owned() + "." + form.clone())
+        .unwrap();
+    // let name = name_capture.to_owned() + "." + form.clone();
+    let clipboard = &mut arboard::Clipboard::new().unwrap();
+
+    let bytes = myimage.as_bytes();
+    let img_data = ImageData {
+        width: myimage.width() as usize,
+        height: myimage.height() as usize,
+        bytes: bytes.as_ref().into(),
+    };
+    clipboard.set_image(img_data).unwrap();
 }
+// pub fn screen(
+//     format: MyRadio,
+//     start_position: Arc<Mutex<Option<(f64, f64)>>>,
+//     end_position: Arc<Mutex<Option<(f64, f64)>>>,
+//     name: String,
+//     save: bool,
+// ) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+//     let new_format = format;
+//     let name_capture = name;
+//     let mut image: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::new(0, 0);
+//     // altri sistemi operativi è l'unico che non da problemi di distorsione, controllare se su windows funziona ugualmente e in tal caso sostituire
+//     if let (Some((x1, y1)), Some((x2, y2))) = (
+//         *start_position.lock().unwrap(),
+//         *end_position.lock().unwrap(),
+//     ) {
+//         let form = match new_format {
+//             MyRadio::Png => "png",
+//             MyRadio::Jpeg => "jpeg",
+//             MyRadio::Bmp => "bmp",
+//         };
+//         let screen = Screen::from_point(0, 0).unwrap();
+
+//         image = screen
+//             .capture_area(
+//                 x1 as i32 + 1,
+//                 y1 as i32 + 1,
+//                 ((x2 - x1) - 1.5) as u32,
+//                 ((y2 - y1) - 1.5) as u32,
+//             )
+//             .unwrap();
+//         if save {
+//             image
+//                 .save(name_capture.to_owned() + "." + form.clone())
+//                 .unwrap();
+//             // let name = name_capture.to_owned() + "." + form.clone();
+//             let clipboard = &mut arboard::Clipboard::new().unwrap();
+
+//             let bytes = image.as_bytes();
+//             let img_data = ImageData {
+//                 width: image.width() as usize,
+//                 height: image.height() as usize,
+//                 bytes: bytes.as_ref().into(),
+//             };
+//             clipboard.set_image(img_data).unwrap();
+//         }
+//     }
+//     image
+// }
 
 // // Versione che fa post processing in un thread apparte. Al momento non funzionante
 // pub fn screen_thread( _is_dragging: Arc<Mutex<Option<bool>>>,mut capturer:Capturer,width: u32,height: u32,start_position:Arc<Mutex<Option<(f64, f64)>>>,end_position:Arc<Mutex<Option<(f64, f64)>>>)

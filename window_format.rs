@@ -10,7 +10,7 @@ use crate::drawing_area::{self, AppData};
 pub enum MyRadio {
     Png,
     Jpeg,
-    Bmp,
+    Gif,
 }
 pub(crate) fn build_ui() -> impl Widget<AppData> {
     let button = Button::new("Save").on_click(move |ctx, data: &mut AppData, _| {
@@ -57,7 +57,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
             RadioGroup::column(vec![
                 ("Png", MyRadio::Png),
                 ("Jpeg", MyRadio::Jpeg),
-                ("Bmp", MyRadio::Bmp),
+                ("Gif", MyRadio::Gif),
             ])
             .lens(AppData::radio_group),
         )

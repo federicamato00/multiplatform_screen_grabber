@@ -169,7 +169,9 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
     let apply_button =
         Button::new("Apply").on_click(|ctx, data: &mut drawing_area::AppData, _env| {
             // Qui puoi definire le tue HotKey basate sui valori in data
-
+            if data.save_image_modifier.eq("Shift") {
+                data.save_image_key.make_ascii_uppercase();
+            }
             let save_image_modifier = match data.save_image_modifier.as_str() {
                 "Ctrl" => Some(Key::Control),
                 "Shift" => Some(Key::Shift),
@@ -193,6 +195,9 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 );
             }
             data.hotkeys.push(shortcut);
+            if data.start_image_modifier.eq("Shift") {
+                data.start_image_key.make_ascii_uppercase();
+            }
             let start_image_modifier = match data.start_image_modifier.as_str() {
                 "Ctrl" => Some(Key::Control),
                 "Shift" => Some(Key::Shift),
@@ -216,6 +221,9 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 );
             }
             data.hotkeys.push(shortcut);
+            if data.quit_app_modifier.eq("Shift") {
+                data.quit_app_key.make_ascii_uppercase();
+            }
             let quit_app_modifier = match data.quit_app_modifier.as_str() {
                 "Ctrl" => Some(Key::Control),
                 "Shift" => Some(Key::Shift),
@@ -239,7 +247,9 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 );
             }
             data.hotkeys.push(shortcut);
-
+            if data.edit_image_modifier.eq("Shift") {
+                data.edit_image_key.make_ascii_uppercase();
+            }
             let edit_image_modifier = match data.edit_image_modifier.as_str() {
                 "Ctrl" => Some(Key::Control),
                 "Shift" => Some(Key::Shift),
@@ -263,6 +273,10 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 );
             }
             data.hotkeys.push(shortcut);
+
+            if data.restart_app_modifier.eq("Shift") {
+                data.restart_app_key.make_ascii_uppercase();
+            }
             let restart_app_modifier = match data.restart_app_modifier.as_str() {
                 "Ctrl" => Some(Key::Control),
                 "Shift" => Some(Key::Shift),
@@ -286,6 +300,9 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 );
             }
             data.hotkeys.push(shortcut);
+            if data.restart_format_app_modifier.eq("Shift") {
+                data.restart_format_app_key.make_ascii_uppercase();
+            }
             let restart_format_app_modifier = match data.restart_format_app_modifier.as_str() {
                 "Ctrl" => Some(Key::Control),
                 "Shift" => Some(Key::Shift),
