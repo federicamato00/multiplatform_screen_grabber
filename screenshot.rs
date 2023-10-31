@@ -4,8 +4,13 @@ use druid::Rect;
 use image::{EncodableLayout, ImageBuffer, Rgba};
 use screenshots::{self, Screen};
 
-pub(crate) fn screen_new(rect: Rect) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+pub(crate) fn screen_new(mut rect: Rect) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
     let screen = Screen::from_point(0, 0).unwrap();
+    if rect.x0 > rect.x1 && rect.y0 > rect.y1 {
+        let (prov_x0, prov_y0) = (rect.x0, rect.y0);
+        (rect.x0, rect.y0) = (rect.x1, rect.y1);
+        (rect.x1, rect.y1) = (prov_x0, prov_y0);
+    }
     let image = screen
         .capture_area(
             rect.x0 as i32 + 1,

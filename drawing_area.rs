@@ -337,8 +337,8 @@ impl Widget<AppData> for DrawingArea {
                                 }
 
                                 data.rect = druid::Rect::from_points(
-                                    data.start_position_to_display.unwrap(),
-                                    data.end_position_to_display.unwrap(),
+                                    data.start_position.unwrap(),
+                                    data.end_position.unwrap(),
                                 );
                             }
                             _ => {
@@ -378,6 +378,7 @@ impl Widget<AppData> for DrawingArea {
                     
                     data.hide_buttons = false;
                 }
+                // println!("{:?}",data.rect);
                 data.myimage= screenshot::screen_new(data.rect);
             }
 
@@ -500,8 +501,8 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 ctx.submit_command(druid::commands::QUIT_APP);
             }
             Event::KeyUp(key_event) => {
-                println!("{:?}",data.tasti);
-                println!("{:?}",data.hotkeys);
+                // println!("{:?}",data.tasti);
+                // println!("{:?}",data.hotkeys);
             if data.tasti.contains_key(&key_event.key) && !data.attivazione.contains_key(&key_event.key) {
                 data.attivazione.insert(key_event.key.clone(), key_event.key.clone());
                 data.tasti.remove(&key_event.key);
