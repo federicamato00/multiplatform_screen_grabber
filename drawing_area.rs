@@ -337,8 +337,8 @@ impl Widget<AppData> for DrawingArea {
                                 }
 
                                 data.rect = druid::Rect::from_points(
-                                    data.start_position.unwrap(),
-                                    data.end_position.unwrap(),
+                                    data.start_position_to_display.unwrap(),
+                                    data.end_position_to_display.unwrap(),
                                 );
                             }
                             _ => {
@@ -379,7 +379,7 @@ impl Widget<AppData> for DrawingArea {
                     data.hide_buttons = false;
                 }
                 // println!("{:?}",data.rect);
-                data.myimage= screenshot::screen_new(data.rect);
+                data.myimage= screenshot::screen_new(data.start_position.unwrap(),data.end_position.unwrap());
             }
 
             _ => {}

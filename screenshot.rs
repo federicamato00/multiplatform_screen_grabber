@@ -1,22 +1,26 @@
-use crate::MyRadio;
 use arboard::ImageData;
-use druid::Rect;
+use druid::Point;
 use image::{EncodableLayout, ImageBuffer, Rgba};
 use screenshots::{self, Screen};
 
-pub(crate) fn screen_new(mut rect: Rect) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+use crate::window_format::MyRadio;
+
+pub(crate) fn screen_new(
+    mut start_position: Point,
+    mut end_position: Point,
+) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
     let screen = Screen::from_point(0, 0).unwrap();
-    if rect.x0 > rect.x1 && rect.y0 > rect.y1 {
-        let (prov_x0, prov_y0) = (rect.x0, rect.y0);
-        (rect.x0, rect.y0) = (rect.x1, rect.y1);
-        (rect.x1, rect.y1) = (prov_x0, prov_y0);
+    if start_position.x > end_position.x && start_position.y > end_position.y {
+        let (prov_x0, prov_y0) = (start_position.x, start_position.y);
+        (start_position.x, start_position.y) = (end_position.x, end_position.y);
+        (end_position.x, end_position.y) = (prov_x0, prov_y0);
     }
     let image = screen
         .capture_area(
-            rect.x0 as i32 + 1,
-            rect.y0 as i32 + 1,
-            ((rect.x1 - rect.x0) - 1.5) as u32,
-            ((rect.y1 - rect.y0) - 1.5) as u32,
+            start_position.x as i32 + 1,
+            start_position.y as i32 + 1,
+            ((end_position.x - start_position.x) - 1.5) as u32,
+            ((end_position.y - start_position.y) - 1.5) as u32,
         )
         .unwrap();
     image
