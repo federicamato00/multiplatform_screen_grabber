@@ -10,17 +10,24 @@ pub(crate) fn screen_new(
     mut end_position: Point,
 ) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
     let screen = Screen::from_point(0, 0).unwrap();
-    if start_position.x > end_position.x && start_position.y > end_position.y {
-        let (prov_x0, prov_y0) = (start_position.x, start_position.y);
-        (start_position.x, start_position.y) = (end_position.x, end_position.y);
-        (end_position.x, end_position.y) = (prov_x0, prov_y0);
+    if start_position.x > end_position.x {
+        let prov_x0 = start_position.x;
+        start_position.x = end_position.x;
+        end_position.x = prov_x0;
     }
+    if start_position.y > end_position.y {
+        let prov_y0 = start_position.y;
+        start_position.y = end_position.y;
+        end_position.y = prov_y0;
+    }
+    end_position.y = end_position.y - 2.1;
+    end_position.x = end_position.x - 2.1;
     let image = screen
         .capture_area(
-            start_position.x as i32 + 1,
-            start_position.y as i32 + 1,
-            ((end_position.x - start_position.x) - 1.5) as u32,
-            ((end_position.y - start_position.y) - 1.5) as u32,
+            (start_position.x + 2.1) as i32,
+            (start_position.y + 2.1) as i32,
+            ((end_position.x - start_position.x) - 1.) as u32,
+            ((end_position.y - start_position.y) - 1.) as u32,
         )
         .unwrap();
     image

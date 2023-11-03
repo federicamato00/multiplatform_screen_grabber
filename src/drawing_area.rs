@@ -452,7 +452,7 @@ impl Widget<AppData> for DrawingArea {
                             let end_points = data.end_position_to_display.unwrap();
                             let rect = druid::Rect::from_points(start_points, end_points);
                             //paint_ctx.fill(rect, &Color::rgba(0.0, 0.0, 1.0, 0.3));
-                            paint_ctx.stroke(rect, &Color::WHITE, 1.0);
+                            paint_ctx.stroke(rect, &Color::RED, 0.9);
                         }
                         _ => {
                             let start_points = data.start_position_to_display.unwrap();
@@ -461,7 +461,7 @@ impl Widget<AppData> for DrawingArea {
                             let rect = druid::Rect::from_points(start_points, end_points);
 
                             //paint_ctx.fill(rect, &Color::rgba(0.0, 0.0, 1.0, 0.3));
-                            paint_ctx.stroke(rect, &Color::BLACK, 1.0);
+                            paint_ctx.stroke(rect, &Color::RED, 0.9);
                         }
                         
                     }
@@ -527,7 +527,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         {
                             
                             //data.hide_buttons = true;
-                            data.attivazione=HashMap::new();
+                            data.attivazione.clear();
                             data.is_found=true;
                             screenshot::save_screen_new(data.radio_group, data.label.clone(), data.myimage.clone());
                             //function::save_screen(data, ctx.size());
@@ -560,7 +560,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         // ctx.request_paint();
                         data.is_found=true;
                         
-                        data.attivazione=HashMap::new();
+                        data.attivazione.clear();
            
                         data.hide_buttons = true;
                         data.last_key_event = Some(key_event.clone());
@@ -608,7 +608,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                             data.is_found = true;
                             data.hide_buttons = true;
                            
-                            data.attivazione=HashMap::new();
+                            data.attivazione.clear();
                             data.last_key_event = Some(key_event.clone());
                             data.is_found=true;
                         }
@@ -637,7 +637,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                     data.modify = false;
                     data.hotkeys = Vec::new();
                     println!("restart from shortkeys {:?}", data.attivazione);
-                    data.attivazione=HashMap::new();
+                    data.attivazione.clear();
                     data.is_found = true;
                     data.last_key_event = None;
                     data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
@@ -680,7 +680,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.modify = false;
                         data.is_found = true;
                         data.hide_buttons = false;
-                        data.attivazione=HashMap::new();
+                        data.attivazione.clear();
                         
                         data.last_key_event = Some(key_event.clone());
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
@@ -698,9 +698,10 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                                         
                 }}
 
-                
+                data.attivazione.clear();
             }
             data.count=0;
+            
             
         }
             _ => {}

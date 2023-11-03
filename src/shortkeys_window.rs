@@ -31,7 +31,7 @@ impl Controller<String, TextBox<String>> for MyController {
 
             KeyDown(_key_event) => {
                 if data.len() >= 1 {
-                    data.truncate(1);
+                    data.truncate(0);
                 }
             }
             _ => (),
