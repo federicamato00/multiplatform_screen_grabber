@@ -401,7 +401,7 @@ impl Widget<AppData> for DrawingArea {
         data: &AppData,
         _env: &Env,
     ) {
-        if data.is_dragging == true && data.is_selecting == true && data.save != true {
+        if data.is_dragging == true && data.is_selecting == true {
             ctx.request_paint();
         }
 
@@ -527,8 +527,6 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         {
                             
                             //data.hide_buttons = true;
-                            data.save = true;
-                            println!("save {:?}", data.attivazione);
                             data.attivazione=HashMap::new();
                             data.is_found=true;
                             screenshot::save_screen_new(data.radio_group, data.label.clone(), data.myimage.clone());
@@ -561,7 +559,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                         // ctx.request_paint();
                         data.is_found=true;
-                        println!("start {:?}", data.attivazione);
+                        
                         data.attivazione=HashMap::new();
            
                         data.hide_buttons = true;
@@ -609,7 +607,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                             }
                             data.is_found = true;
                             data.hide_buttons = true;
-                            println!("edit {:?}", data.attivazione);
+                           
                             data.attivazione=HashMap::new();
                             data.last_key_event = Some(key_event.clone());
                             data.is_found=true;
