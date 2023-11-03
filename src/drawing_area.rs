@@ -627,23 +627,22 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 }
                 if found==true {
 
-                    // data.start_position = None;
-                    // data.end_position = None;
-                    // data.start_position_to_display = None;
-                    // data.end_position_to_display = None;
-                    // data.is_dragging = false;
-                    // data.is_selecting = false;
+                    data.start_position = None;
+                    data.end_position = None;
+                    data.start_position_to_display = None;
+                    data.end_position_to_display = None;
+                    data.is_dragging = false;
+                    data.is_selecting = false;
                     data.modify = false;
                     data.hotkeys = Vec::new();
                     data.attivazione=HashMap::new();
-                    // data.is_found = true;
+                    data.is_found = true;
                     data.last_key_event = None;
-                    data.switch_window=true;
-                    // data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+                    data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                     //non mi funziona più con close_window da controllare
-                    // ctx.submit_command(
-                    //     druid::commands::HIDE_WINDOW.to(ctx.window_id()),
-                    // );
+                    ctx.submit_command(
+                        druid::commands::HIDE_WINDOW.to(ctx.window_id()),
+                    );
                     let shortkeys_window = WindowDesc::new(shortkeys_window::ui_builder())    
                     .transparent(false)
                     .title("Choose your personal shorkeys configuration. Selecting same combinations for different commands isn't allowed")    
@@ -668,19 +667,19 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                     
                 }
                 if found==true {
-                    // data.start_position = None;
-                    //     data.end_position = None;
-                    //     data.start_position_to_display = None;
-                    //     data.end_position_to_display = None;
-                    //     data.is_dragging = false;
-                    //     data.is_selecting = false;
-                    //     data.modify = false;
-                        // data.is_found = true;
+                    data.start_position = None;
+                        data.end_position = None;
+                        data.start_position_to_display = None;
+                        data.end_position_to_display = None;
+                        data.is_dragging = false;
+                        data.is_selecting = false;
+                        data.modify = false;
+                        data.is_found = true;
                         data.hide_buttons = false;
                         data.attivazione=HashMap::new();
                         
                         data.last_key_event = Some(key_event.clone());
-                        // data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+                        data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                         data.is_found=true;
                         //non mi funziona più con close_window da controllare
                         ctx.submit_command(druid::commands::HIDE_WINDOW.to(ctx.window_id()));

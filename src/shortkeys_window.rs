@@ -7,7 +7,7 @@ use druid_shell::keyboard_types::Key;
 
 use crate::drawing_area::{self, MyHotkey};
 use crate::function;
-use crate::window_format;
+use crate::window_format::{self};
 
 struct MyController;
 
@@ -169,6 +169,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
     let apply_button =
         Button::new("Apply").on_click(|ctx, data: &mut drawing_area::AppData, _env| {
             // Qui puoi definire le tue HotKey basate sui valori in data
+            data.hotkeys = Vec::new();
             if data.save_image_modifier.eq("Shift") {
                 data.save_image_key.make_ascii_uppercase();
             }
@@ -785,12 +786,10 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 .set_always_on_top(true);
 
             if function::are_all_fields_completed(data) && !function::some_fields_are_equal(data) {
-                data.format_window_id = format_window.id;
-                data.shortkeys_window_id = ctx.window_id();
                 //data.hotkeys.sort_by(|a, b| b.len().cmp(&a.len()));
                 ctx.new_window(format_window);
-                ctx.submit_command(druid::commands::HIDE_WINDOW.to(ctx.window_id()));
-                ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.format_window_id));
+                ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
+                // ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.format_window_id));
             }
         });
     let errore = Label::new(|data: &drawing_area::AppData, _env: &Env| {
