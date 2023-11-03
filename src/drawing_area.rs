@@ -498,8 +498,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 ctx.submit_command(druid::commands::QUIT_APP);
             }
             Event::KeyUp(key_event) => {
-                // println!("{:?}",data.tasti);
-                // println!("{:?}",data.hotkeys);
+
             if data.tasti.contains_key(&key_event.key) && !data.attivazione.contains_key(&key_event.key) {
                 data.attivazione.insert(key_event.key.clone(), key_event.key.clone());
                 data.tasti.remove(&key_event.key);
@@ -507,29 +506,29 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 
 
             }
-            
-            
             if data.count<=0 && !data.attivazione.is_empty(){
                 data.count=0;
                 // println!("{:?}, {:?}",data.attivazione, data.count);
                 //save hotkey
                 let mut found= true;
-                for key in  data.attivazione.keys()
+                for key in  data.attivazione.keys() 
                 {
                    
-                    if !data.hotkeys.get(0).unwrap().keys.contains_key(key){
+                    if !data.hotkeys.get(0).unwrap().keys.contains_key(key) || data.hotkeys.get(0).unwrap().keys.len() != data.attivazione.keys().len() {
                         found=false;
                         break;
                     }
                     
                 }
                 if found==true {
+                  
                     if data.start_position != None
                             && data.end_position != None
                         {
                             
                             //data.hide_buttons = true;
                             data.save = true;
+                            println!("save {:?}", data.attivazione);
                             data.attivazione=HashMap::new();
                             data.is_found=true;
                             screenshot::save_screen_new(data.radio_group, data.label.clone(), data.myimage.clone());
@@ -545,7 +544,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 {
                     for key in  data.attivazione.keys ()
                 {
-                    if !data.hotkeys.get(1).unwrap().keys.contains_key(key) {
+                    if !data.hotkeys.get(1).unwrap().keys.contains_key(key) || data.hotkeys.get(1).unwrap().keys.len() != data.attivazione.keys().len() {
                         found=false;
                         break;
                     }
@@ -562,6 +561,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                         // ctx.request_paint();
                         data.is_found=true;
+                        println!("start {:?}", data.attivazione);
                         data.attivazione=HashMap::new();
            
                         data.hide_buttons = true;
@@ -575,7 +575,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 if !data.is_found
                 {for key in  data.attivazione.keys()
                 {
-                    if !data.hotkeys.get(2).unwrap().keys.contains_key(key) {
+                    if !data.hotkeys.get(2).unwrap().keys.contains_key(key) || data.hotkeys.get(2).unwrap().keys.len() != data.attivazione.keys().len(){
                         found=false;
                         break;
                     }
@@ -590,7 +590,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 if !data.is_found
                 {for key in  data.attivazione.keys()
                 {
-                    if !data.hotkeys.get(3).unwrap().keys.contains_key(key){
+                    if !data.hotkeys.get(3).unwrap().keys.contains_key(key) || data.hotkeys.get(3).unwrap().keys.len() != data.attivazione.keys().len(){
                         found=false;
                         break;
                     }
@@ -609,17 +609,20 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                             }
                             data.is_found = true;
                             data.hide_buttons = true;
+                            println!("edit {:?}", data.attivazione);
                             data.attivazione=HashMap::new();
                             data.last_key_event = Some(key_event.clone());
+                            data.is_found=true;
                         }
                 }}
 
                 //restart from shortkeys
                 let mut found= true;
                 if !data.is_found
-                {for key in data.attivazione.keys() 
                 {
-                    if !data.hotkeys.get(4).unwrap().keys.contains_key(key) {
+                    for key in data.attivazione.keys() 
+                {
+                    if !data.hotkeys.get(4).unwrap().keys.contains_key(key) || data.hotkeys.get(4).unwrap().keys.len() != data.attivazione.keys().len(){
                         found=false;
                         break;
                     }
@@ -635,14 +638,15 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                     data.is_selecting = false;
                     data.modify = false;
                     data.hotkeys = Vec::new();
+                    println!("restart from shortkeys {:?}", data.attivazione);
                     data.attivazione=HashMap::new();
                     data.is_found = true;
                     data.last_key_event = None;
                     data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                     //non mi funziona più con close_window da controllare
-                    ctx.submit_command(
-                        druid::commands::HIDE_WINDOW.to(ctx.window_id()),
-                    );
+                    // ctx.submit_command(
+                    //     druid::commands::HIDE_WINDOW.to(ctx.window_id()),
+                    // );
                     let shortkeys_window = WindowDesc::new(shortkeys_window::ui_builder())    
                     .transparent(false)
                     .title("Choose your personal shorkeys configuration. Selecting same combinations for different commands isn't allowed")    
@@ -657,10 +661,12 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
 
                 //restart from format hotkey
                 let mut found= true;
+                
                 if !data.is_found
-                {for key in  data.attivazione.keys()
                 {
-                    if !data.hotkeys.get(5).unwrap().keys.contains_key(key) {
+                    for key in  data.attivazione.keys()
+                {
+                    if !data.hotkeys.get(5).unwrap().keys.contains_key(key) || data.hotkeys.get(5).unwrap().keys.len() != data.attivazione.keys().len(){
                         found=false;
                         break;
                     }
@@ -682,7 +688,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                         data.is_found=true;
                         //non mi funziona più con close_window da controllare
-                        ctx.submit_command(druid::commands::HIDE_WINDOW.to(ctx.window_id()));
+                        // ctx.submit_command(druid::commands::HIDE_WINDOW.to(ctx.window_id()));
                         let format_window = WindowDesc::new(window_format::build_ui())
                             .transparent(false)
                             .title("Choose the format. Default is .png")
