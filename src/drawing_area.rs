@@ -126,12 +126,7 @@ impl Widget<AppData> for DrawingArea {
                 //println!("size window {:?}",size);
                 
             }
-            Event::WindowCloseRequested => {
-                // Qui puoi gestire l'evento di chiusura della finestra.
-                // Ad esempio, potresti voler salvare i dati dell'applicazione o mostrare un messaggio all'utente.
-                ctx.submit_command(druid::commands::QUIT_APP);
-            }
-
+           
             druid::Event::MouseDown(mouse_event) => {
                 
                 if data.modify == true && data.is_dragging == false {
@@ -303,9 +298,7 @@ impl Widget<AppData> for DrawingArea {
                         
                         data.is_selecting = false;
                         data.modify = true;
-                        //ctx.request_paint();
-                        //println!("Click end: {:?}", mouse_event.pos);
-                        //thread::sleep(Duration::from_millis(1000));
+                       
                         let os = env::consts::OS;
                         match os {
                             "windows" => {
@@ -486,29 +479,46 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
         match event {
             Event::KeyDown(key_event) => {
                 
-                if !data.tasti.contains_key(&key_event.key) {
+                let mut key = "".to_string();
+                if key_event.key!= Key::CapsLock
+                {if !data.tasti.contains_key(&key_event.key) {
+                    if key_event.key!= Key::Control && key_event.key!= Key::Shift && key_event.key!=Key::Enter && key_event.key!=Key::Escape
+                    {
+                         key = key_event.key.to_string().to_ascii_lowercase();
+                         
+                         data.tasti.insert(Key::Character(key.clone()), Key::Character(key.clone()));
+                    }
+                    else {
+                        data.tasti.insert(key_event.key.clone(), key_event.key.clone());
+                    }
                     data.is_found=false;
-                    data.tasti.insert(key_event.key.clone(), key_event.key.clone());
+                    
                     data.count+=1;
                     
-                }
+                }}
 
             }
-            Event::WindowCloseRequested => {
-                ctx.submit_command(druid::commands::QUIT_APP);
-            }
+          
             Event::KeyUp(key_event) => {
-
-            if data.tasti.contains_key(&key_event.key) && !data.attivazione.contains_key(&key_event.key) {
-                data.attivazione.insert(key_event.key.clone(), key_event.key.clone());
-                data.tasti.remove(&key_event.key);
+                let mut key = key_event.key.clone();
+                if key_event.key!= Key::CapsLock
+           { 
+            if key_event.key!= Key::Control && key_event.key!= Key::Shift && key_event.key!=Key::Enter && key_event.key!=Key::Escape
+            {
+                 key = Key::Character(key_event.key.to_string().to_ascii_lowercase());
+                
+            }
+            
+            if data.tasti.contains_key(&key) && !data.attivazione.contains_key(&key) {
+                data.attivazione.insert(key.clone(), key.clone());
+                data.tasti.remove(&key);
                 data.count-=1;
                 
 
             }
             if data.count<=0 && !data.attivazione.is_empty(){
                 data.count=0;
-                // println!("{:?}, {:?}",data.attivazione, data.count);
+
                 //save hotkey
                 let mut found= true;
                 for key in  data.attivazione.keys() 
@@ -635,22 +645,20 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                     data.is_dragging = false;
                     data.is_selecting = false;
                     data.modify = false;
-                    data.hotkeys = Vec::new();
-                    println!("restart from shortkeys {:?}", data.attivazione);
+                    data.hotkeys.clear();
+                    
                     data.attivazione.clear();
                     data.is_found = true;
                     data.last_key_event = None;
                     data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-                    //non mi funziona più con close_window da controllare
-                    // ctx.submit_command(
-                    //     druid::commands::HIDE_WINDOW.to(ctx.window_id()),
-                    // );
+                    
                     let shortkeys_window = WindowDesc::new(shortkeys_window::ui_builder())    
                     .transparent(false)
                     .title("Choose your personal shorkeys configuration. Selecting same combinations for different commands isn't allowed")    
                     .window_size(Size::new(1000., 1000.0))
                     .set_always_on_top(true)    .show_titlebar(true);
                      ctx.new_window(shortkeys_window);
+                     ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
 
 
                         
@@ -685,8 +693,6 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         data.last_key_event = Some(key_event.clone());
                         data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                         data.is_found=true;
-                        //non mi funziona più con close_window da controllare
-                        // ctx.submit_command(druid::commands::HIDE_WINDOW.to(ctx.window_id()));
                         let format_window = WindowDesc::new(window_format::build_ui())
                             .transparent(false)
                             .title("Choose the format. Default is .png")
@@ -694,6 +700,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                             .set_always_on_top(true)
                             .show_titlebar(true);
                         ctx.new_window(format_window);
+                        ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
                         
                                         
                 }}
@@ -701,7 +708,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 data.attivazione.clear();
             }
             data.count=0;
-            
+            }
             
         }
             _ => {}
@@ -764,62 +771,54 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                 ))
                                 .with_child(Button::new("Choose your shortkeys").on_click(
                                     |ctx: &mut EventCtx, data: &mut AppData, _: &Env| {
-                                        // data.start_position = None;
-                                        // data.end_position = None;
-                                        // data.start_position_to_display = None;
-                                        // data.end_position_to_display = None;
-                                        // data.is_dragging = false;
-                                        // data.is_selecting = false;
-                                        // data.modify = false;
-                                        // data.hotkeys = Vec::new();
+                                        data.start_position = None;
+                                        data.end_position = None;
+                                        data.start_position_to_display = None;
+                                        data.end_position_to_display = None;
+                                        data.is_dragging = false;
+                                        data.is_selecting = false;
+                                        data.modify = false;
+                                        data.hotkeys.clear();
                                         data.is_found = false;
                                         data.last_key_event = None;
-                                        // data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+                                        data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                                         data.switch_window=true;
                                         let shortkeys_window = WindowDesc::new(shortkeys_window::ui_builder())    
                                         .transparent(false)
                                         .title("Choose your personal shorkeys configuration. Selecting same combinations for different commands isn't allowed")    
                                         .window_size(Size::new(1000., 1000.0))
                                         .set_always_on_top(true)    .show_titlebar(true);
-                                         ctx.new_window(shortkeys_window);
-                                         //non mi funziona più con close_window da controllare
-                                        // ctx.submit_command(
-                                        //     druid::commands::CLOSE_WINDOW.to(ctx.window_id()),
-                                        // );
+                                        ctx.new_window(shortkeys_window);
+                                        ctx.submit_command(
+                                            druid::commands::CLOSE_WINDOW.to(ctx.window_id()),
+                                        );
                                     },
                                 ))
                                 .with_child(Button::new("Choose image format").on_click(
                                     |ctx: &mut EventCtx, data: &mut AppData, _: &Env| {
-                                        // data.start_position = None;
-                                        // data.end_position = None;
-                                        // data.start_position_to_display = None;
-                                        // data.end_position_to_display = None;
-                                        // data.is_dragging = false;
-                                        // data.is_selecting = false;
-                                        // data.modify = false;
+                                        data.start_position = None;
+                                        data.end_position = None;
+                                        data.start_position_to_display = None;
+                                        data.end_position_to_display = None;
+                                        data.is_dragging = false;
+                                        data.is_selecting = false;
+                                        data.modify = false;
                                         data.is_found = false;
                                         data.last_key_event = None;
-                                        // data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+                                        data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
                                         data.switch_window=true;
-                                       
-                                       
-                                        // non mi funziona più con close_window da controllare
-                                         
-                                        // ctx.submit_command(
-                                        //     druid::commands::CLOSE_WINDOW.to(ctx.window_id())
-                                        // );
+                                        ctx.submit_command(
+                                            druid::commands::CLOSE_WINDOW.to(ctx.window_id())
+                                        );
                                         let format_window = WindowDesc::new(window_format::build_ui())    
                                         .transparent(false)
                                         .title("Choose the format. Default is .png")    
                                         .window_size(Size::new(200.0, 200.0))
                                         .set_always_on_top(true)    .show_titlebar(true)
                                         ;
-                                        
                                         ctx.new_window(format_window);
                                         
-                                        // ctx.submit_command(
-                                        //     druid::commands::CLOSE_WINDOW.to(id),
-                                        // );
+                                        
                                         
                                        
 

@@ -5,12 +5,35 @@ use druid::Event::KeyDown;
 use druid::{Env, Event, EventCtx, Size, Widget, WidgetExt, WindowDesc};
 use druid_shell::keyboard_types::Key;
 
-use crate::drawing_area::{self, MyHotkey};
+use crate::drawing_area::{self, AppData, MyHotkey};
 use crate::function;
 use crate::window_format::{self};
 
 struct MyController;
-
+struct MyViewHandler;
+impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
+    fn event(
+        &mut self,
+        child: &mut W,
+        ctx: &mut druid::EventCtx,
+        event: &druid::Event,
+        data: &mut AppData,
+        env: &druid::Env,
+    ) {
+        match event {
+            druid::Event::WindowCloseRequested => {
+                if !data.switch_window {
+                    ctx.submit_command(druid::commands::QUIT_APP);
+                    ctx.set_handled();
+                } else {
+                    data.switch_window = false;
+                }
+            }
+            _ => {}
+        }
+        child.event(ctx, event, data, env);
+    }
+}
 impl Controller<String, TextBox<String>> for MyController {
     fn event(
         &mut self,
@@ -21,22 +44,19 @@ impl Controller<String, TextBox<String>> for MyController {
         env: &Env,
     ) {
         match event {
-            Event::WindowConnected => {
-                if data == "Escape" || data == "Enter" {
-                    ctx.set_disabled(true);
-                } else {
-                    ctx.set_disabled(false);
-                }
-            }
-
             KeyDown(_key_event) => {
                 if data.len() >= 1 {
                     data.truncate(0);
                 }
             }
-            _ => (),
+
+            _ => {}
         }
-        child.event(ctx, event, data, env)
+        child.event(ctx, event, data, env);
+        data.make_ascii_lowercase();
+        if ctx.is_disabled() {
+            data.clear();
+        }
     }
 }
 
@@ -788,7 +808,10 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             if function::are_all_fields_completed(data) && !function::some_fields_are_equal(data) {
                 //data.hotkeys.sort_by(|a, b| b.len().cmp(&a.len()));
                 ctx.new_window(format_window);
+                data.switch_window = true;
                 ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
+
+                ctx.set_handled();
                 // ctx.submit_command(druid::commands::SHOW_WINDOW.to(data.format_window_id));
             }
         });
@@ -799,6 +822,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
             "Per favore, compila tutti i campi.".to_string()
         }
     });
+
     let errore_field = Label::new(|data: &drawing_area::AppData, _env: &Env| {
         if function::some_fields_are_equal(data) {
             "Stesse shortkeys non sono ammesse".to_string()
@@ -817,4 +841,5 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
         .with_child(restart)
         .with_child(choose_format)
         .with_child(apply_button)
+        .controller(MyViewHandler)
 }

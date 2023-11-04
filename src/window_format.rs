@@ -1,7 +1,8 @@
 use druid::{
-    widget::{Button, Flex, RadioGroup, TextBox},
+    widget::{Button, Controller, Flex, RadioGroup, TextBox},
     Data, Size, Widget, WidgetExt, WindowDesc,
 };
+
 use scrap::Display;
 
 use crate::drawing_area::{self, AppData};
@@ -12,7 +13,30 @@ pub enum MyRadio {
     Jpeg,
     Gif,
 }
-
+struct MyViewHandler;
+impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
+    fn event(
+        &mut self,
+        child: &mut W,
+        ctx: &mut druid::EventCtx,
+        event: &druid::Event,
+        data: &mut AppData,
+        env: &druid::Env,
+    ) {
+        match event {
+            druid::Event::WindowCloseRequested => {
+                if !data.switch_window {
+                    ctx.submit_command(druid::commands::QUIT_APP);
+                    ctx.set_handled();
+                } else {
+                    data.switch_window = false;
+                }
+            }
+            _ => {}
+        }
+        child.event(ctx, event, data, env);
+    }
+}
 pub(crate) fn build_ui() -> impl Widget<AppData> {
     let button = Button::new("Save").on_click(move |ctx, data: &mut AppData, _| {
         if data.label == "".to_string() {
@@ -39,7 +63,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                 .set_always_on_top(true)
                 .transparent(true)
                 .set_window_state(druid_shell::WindowState::Maximized);
-
+            data.switch_window = true;
             // let id = main_window.id.clone();
             ctx.new_window(main_window);
         } else {
@@ -65,4 +89,5 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
             .lens(AppData::radio_group),
         )
         .with_child(button)
+        .controller(MyViewHandler)
 }
