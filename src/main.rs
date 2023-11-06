@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use druid::{LocalizedString, WindowId};
+use druid::LocalizedString;
 use image::ImageBuffer;
 use window_format::MyRadio;
 
@@ -20,15 +20,15 @@ fn main() {
         .window_size((1000.0, 1000.0));
 
     let initial_state = drawing_area::AppData {
-        save_image_modifier: "None".into(),
-        save_image_key: (Key::Character("s".to_string())).to_string(),
-        quit_app_modifier: "None".into(),
-        quit_app_key: (Key::Character("q".to_string())).to_string(),
+        save_image_modifier: "Enter".into(),
+        save_image_key: (Key::Character("".to_string())).to_string(),
+        quit_app_modifier: "Escape".into(),
+        quit_app_key: (Key::Character("".to_string())).to_string(),
         edit_image_modifier: "None".into(),
         edit_image_key: (Key::Character("m".to_string())).to_string(),
-        start_image_modifier: "Escape".into(),
-        start_image_key: (Key::Character("".to_string())).to_string(),
-        restart_app_modifier: "Enter".into(),
+        start_image_modifier: "None".into(),
+        start_image_key: (Key::Character("s".to_string())).to_string(),
+        restart_app_modifier: "Shift".into(),
         restart_app_key: (Key::Character("".to_string())).to_string(),
         restart_format_app_modifier: "Ctrl".into(),
         restart_format_app_key: (Key::Character("".to_string())).to_string(),
@@ -44,9 +44,6 @@ fn main() {
         where_dragging: None,
         radio_group: MyRadio::Png,
         label: "screenshot_grabbed".to_string(),
-        format_window_id: WindowId::next(),
-        shortkeys_window_id: WindowId::next(),
-        main_window_id: main_window.id,
         switch_window: false,
         is_found: false,
         last_key_event: None,

@@ -46,6 +46,7 @@ pub(crate) fn save_screen_new(
         MyRadio::Gif => "gif",
     };
     let mut myimage = image;
+    // println!("image: {:?}", myimage.width());
     if myimage.width() == 0 && myimage.height() == 0 {
         myimage = Screen::from_point(0, 0).unwrap().capture().unwrap();
     }
