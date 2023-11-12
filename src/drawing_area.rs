@@ -1,7 +1,12 @@
+// use std::cell::Cell;
+// use std::cell::RefCell;
 use std::collections::HashMap;
 use std::env;
 
-use druid::Selector;
+
+use druid::ImageBuf;
+
+
 use druid::widget::BackgroundBrush;
 use druid::widget::Button;
 use druid::widget::Controller;
@@ -24,12 +29,16 @@ use druid::WidgetExt;
 use druid::WindowDesc;
 
 
+use druid::widget::Image;
 use druid::widget::Label;
 use druid::widget::Padding;
 
 use druid::widget::ViewSwitcher;
 use druid_shell::keyboard_types::Key;
 use druid_shell::KeyEvent;
+
+use druid_shell::piet::ImageFormat;
+
 use image::ImageBuffer;
 use image::Rgba;
 
@@ -41,6 +50,8 @@ use crate::window_format;
 use druid::Lens;
 use druid_shell::MouseButton;
 use scrap::Display;
+
+
 
 #[derive(Clone, Data, Lens)]
 pub struct AppData {
@@ -70,7 +81,8 @@ pub struct AppData {
     pub(crate) is_found: bool,
     pub(crate) hide_buttons: bool,
     pub(crate) switch_window: bool,
-    pub(crate) save: bool,
+    pub(crate) show_drawing : bool,
+    
     #[data(ignore)]
     pub(crate) myimage: ImageBuffer<Rgba<u8>, Vec<u8>>,
     #[data(ignore)]
@@ -85,6 +97,7 @@ pub struct AppData {
 }
 
 
+
 // Definisci la struttura della tua hotkey
 
 #[derive(Clone, PartialEq, Debug)]
@@ -92,6 +105,7 @@ pub struct MyHotkey {
     pub(crate) keys: HashMap<Key,Key>,
 
 }
+
 
 #[derive(Clone, Data, PartialEq)]
 pub enum DragHandle {
@@ -105,14 +119,13 @@ pub enum DragHandle {
 struct DrawingArea;
 impl Widget<AppData> for DrawingArea {
     fn event(&mut self, ctx: &mut EventCtx, event: &druid::Event, data: &mut AppData, _env: &Env) {
+        
        
-        //println!("{:?}", event);
         match event {
             
             
             Event::WindowConnected => {
-                // Richiedi il focus quando la finestra è connessa.
-                if data.modify == false {}
+                
                 // Imposta la dimensione della finestra
                 let display_primary = Display::primary().expect("couldn't find primary display");
                 let size = Size::new(
@@ -123,9 +136,10 @@ impl Widget<AppData> for DrawingArea {
                 //println!("size window {:?}",size);
                 
             }
-           
+       
             druid::Event::MouseDown(mouse_event) => {
                 
+
                 if data.modify == true && data.is_dragging == false {
                     data.start_position = None;
                     data.end_position = None;
@@ -217,7 +231,7 @@ impl Widget<AppData> for DrawingArea {
                     "windows" => {
                         if ctx.is_active() == false
                             && data.is_dragging == false
-                            && data.save != true
+                            
                         {
                             let scale_factor_x = ctx.window().get_scale().unwrap().x();
                             let scale_factor_y = ctx.window().get_scale().unwrap().y();
@@ -250,7 +264,7 @@ impl Widget<AppData> for DrawingArea {
                    _ => {
                         if ctx.is_active() == false
                             && data.is_dragging == false
-                            && data.save != true
+                            
                         {
                             let pos = ctx
                                 .to_screen(druid::Point::new(mouse_event.pos.x, mouse_event.pos.y));
@@ -365,10 +379,9 @@ impl Widget<AppData> for DrawingArea {
                     data.hide_buttons = false;
                 }
                 // println!("{:?}",data.rect);
-                if data.start_position!=data.end_position
-                {
+               
                     data.myimage= screenshot::screen_new(data.start_position.unwrap(),data.end_position.unwrap());
-                }
+                
             }
 
             _ => {}
@@ -472,11 +485,11 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
         env: &Env,
     ) {
         ctx.request_focus();
-
+       
         match event {
             Event::KeyDown(key_event) => {
                 
-                let mut key = "".to_string();
+                let key ;
                 if key_event.key!= Key::CapsLock
                 {if !data.tasti.contains_key(&key_event.key) {
                     if key_event.key!= Key::Control && key_event.key!= Key::Shift && key_event.key!=Key::Enter && key_event.key!=Key::Escape
@@ -495,7 +508,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 }}
 
             }
-          
+            
             Event::KeyUp(key_event) => {
                 let mut key = key_event.key.clone();
                 if key_event.key!= Key::CapsLock
@@ -529,18 +542,16 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 }
                 if found==true {
                   
-                    // if data.start_position != None
-                    //         && data.end_position != None
-                    //     {
-                            
+                  
                             // data.hide_buttons = true;
                             data.attivazione.clear();
                             data.is_found=true;
-                            screenshot::save_screen_new(data.radio_group, data.label.clone(), data.myimage.clone());
-                            //function::save_screen(data, ctx.size());
-                            //ctx.submit_command(Command::new(SAVE, "", Target::Global));
+                            if data.myimage.width()!= 0 && data.myimage.height()!=0 {
+                                screenshot::save_screen_new(data);
+                            }
+
                             data.last_key_event = Some(key_event.clone());
-                        // }
+                        
                 }
 
                 //start hotkeys
@@ -648,7 +659,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                     data.is_found = true;
                     data.last_key_event = None;
                     // data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-                    
+                    data.show_drawing=true;
                     let shortkeys_window = WindowDesc::new(shortkeys_window::ui_builder())    
                     .transparent(false)
                     .title("Choose your personal shorkeys configuration. Selecting same combinations for different commands isn't allowed")    
@@ -714,16 +725,39 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
     }
 
 }
+
+
+
+
 pub(crate) fn build_ui() -> impl Widget<AppData> {
-    let os = std::env::consts::OS;
-    let mut color = Color::TRANSPARENT;
-    if os !="windows" 
-    {
-        color =  Color::BLACK;
-    }
+   
+    // let mut save = false;
+    // let cell = RefCell::new(save);
+    // let cell2 = cell.clone();
+    // let cell3= cell2.clone();
+    
+    let dimensioni = Display::primary().expect("error");            
     let skip_panel = ViewSwitcher::new(
-        |data: &AppData, _env| data.hide_buttons,
-        move |selector, _data, _env| {
+          move|data: &AppData, _env| data.hide_buttons ,
+         move|selector,  data: & AppData, _env| {
+            let os = std::env::consts::OS;
+            let mut color = Color::TRANSPARENT;
+            let mut color_border = Color::WHITE;
+            let combinazione ;
+            if data.start_image_modifier!= "None".to_string()
+            {combinazione = data.start_image_modifier.as_str().to_owned() + "+" + &data.start_image_key;}
+            else {
+                combinazione = data.start_image_key.clone();
+            }
+            let s = format!("Per fare lo screen all'intero schermo, premi Start (o la tua shortcut {:?}) + click del mouse", combinazione);
+            if data.myimage.width()==0 && data.myimage.height() == 0 {
+                color_border= Color::TRANSPARENT;
+            }
+            if os !="windows" 
+            {
+                color =  Color::BLACK;
+            }
+           
             match selector {
             false => 
             
@@ -746,12 +780,13 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         },
                                     ),
                                 ))
+                                
                                 .with_child(Button::new("Save Screen").on_click(
-                                    |_ctx: &mut EventCtx, data: &mut AppData, _: &Env| {
-                                        // data.hide_buttons = true;
+                                     |_ctx: &mut EventCtx, data: &mut AppData, _env: &Env| {
+                                        if data.myimage.width()!= 0 && data.myimage.height()!=0 {
+                                            screenshot::save_screen_new(data);
+                                        }
                                         
-                                        // data.save = true;
-                                        screenshot::save_screen_new(data.radio_group, data.label.clone(), data.myimage.clone());
                                     },
                                 ))
                                 .with_child(Button::new("Close").on_click(
@@ -781,8 +816,9 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         data.hotkeys.clear();
                                         data.is_found = false;
                                         data.last_key_event = None;
+                                        data.show_drawing=true;
                                         // data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-                                        data.switch_window=true;
+                                        // data.switch_window=true;
                                         let shortkeys_window = WindowDesc::new(shortkeys_window::ui_builder())    
                                         .transparent(false)
                                         .title("Choose your personal shorkeys configuration. Selecting same combinations for different commands isn't allowed")    
@@ -806,7 +842,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         data.is_found = false;
                                         data.last_key_event = None;
                                         // data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-                                        data.switch_window=true;
+                                        // data.switch_window=true;
                                         ctx.submit_command(
                                             druid::commands::CLOSE_WINDOW.to(ctx.window_id())
                                         );
@@ -828,23 +864,41 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                         )
                         .with_child(Label::new(
                             "Per uscire dalla modalità edit, premi fuori dall'area disegnata",
-                        )),
+                        ))
+                        .with_child(Label::new(
+                            s,
+                        ))
+                        .with_child(Image::new(ImageBuf::from_raw(data.myimage.clone().into_raw(),ImageFormat::RgbaSeparate, data.myimage.width() as usize, data.myimage.height() as usize)).center()
+                        .fix_size(dimensioni.width() as f64/1.2 as f64 , dimensioni.height() as f64 / 1.2 as f64 )
+                        .border(color_border, 1.0)),
                 )
+                
                 .fix_size(
                     Display::primary().expect("erro").width() as f64,
                     Display::primary().expect("erro").height() as f64,
                 ).background(BackgroundBrush::Color(color)),
             ),
             true => {
+                    // println!("ciao");
+                    
+                    // screenshot::save_screen_new(&mut data.clone());
+                    // let mut c = cell2.borrow_mut();
+                    // *c = false;
                 
+
                 Box::new(Flex::column().with_child(DrawingArea))
-                
+               
             },
         }
         },
+        
     );
-
+    
     Flex::column()
         .with_child(skip_panel)
         .controller(MyViewHandler)
+        
 }
+
+
+

@@ -48,11 +48,12 @@ fn main() {
         is_found: false,
         last_key_event: None,
         hide_buttons: false,
-        save: false,
+
         tasti: HashMap::new(),
         attivazione: HashMap::new(),
         count: 0,
         myimage: ImageBuffer::new(0, 0),
+        show_drawing: false,
     };
 
     AppLauncher::with_window(main_window)
