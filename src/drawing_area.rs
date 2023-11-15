@@ -1,54 +1,14 @@
-// use std::cell::Cell;
-// use std::cell::RefCell;
-use std::collections::HashMap;
-use std::env;
 
-
-use druid::ImageBuf;
-
-
-use druid::widget::BackgroundBrush;
-use druid::widget::Button;
-use druid::widget::Controller;
-use druid::widget::Flex;
-use druid::Color;
-
-use druid::Data;
-use druid::Env;
-use druid::Event;
-use druid::EventCtx;
-use druid::Insets;
-use druid::PaintCtx;
-use druid::Point;
-use druid::Rect;
-use druid::RenderContext;
-use druid::Size;
-
-use druid::Widget;
-use druid::WidgetExt;
-use druid::WindowDesc;
-
-
-use druid::widget::Image;
-use druid::widget::Label;
-use druid::widget::Padding;
-
-use druid::widget::ViewSwitcher;
-use druid_shell::keyboard_types::Key;
-use druid_shell::KeyEvent;
-
-use druid_shell::piet::ImageFormat;
-
-use image::ImageBuffer;
-use image::Rgba;
-
-
+use std::{collections::HashMap, env};
+use arboard::ImageData;
+use druid::{ImageBuf,Lens,Color,Data, Env, Event, EventCtx, Insets, PaintCtx, Point, Rect, RenderContext,Size, Widget, WidgetExt, WindowDesc};
+use druid::widget::{BackgroundBrush, Button, Controller, Flex, Image, Label, Padding, ViewSwitcher};
+use druid_shell::{keyboard_types::Key, KeyEvent, piet::ImageFormat, MouseButton};
+use image::{EncodableLayout, ImageBuffer,Rgba};
 use crate::function;
 use crate::screenshot;
 use crate::shortkeys_window;
 use crate::window_format;
-use druid::Lens;
-use druid_shell::MouseButton;
 use scrap::Display;
 
 
@@ -82,7 +42,8 @@ pub struct AppData {
     pub(crate) hide_buttons: bool,
     pub(crate) switch_window: bool,
     pub(crate) show_drawing : bool,
-    
+    pub(crate) copy_clipboard_modifier: String,
+    pub(crate) copy_clipboard_key: String,
     #[data(ignore)]
     pub(crate) myimage: ImageBuffer<Rgba<u8>, Vec<u8>>,
     #[data(ignore)]
@@ -490,7 +451,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
             Event::KeyDown(key_event) => {
                 
                 let key ;
-                if key_event.key!= Key::CapsLock
+                if key_event.key!= Key::CapsLock //bisogna forse aggiungere anche FnLock? Da rivedere
                 {if !data.tasti.contains_key(&key_event.key) {
                     if key_event.key!= Key::Control && key_event.key!= Key::Shift && key_event.key!=Key::Enter && key_event.key!=Key::Escape
                     {
@@ -510,6 +471,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
             }
             
             Event::KeyUp(key_event) => {
+                
                 let mut key = key_event.key.clone();
                 if key_event.key!= Key::CapsLock
            { 
@@ -683,6 +645,9 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                     if !data.hotkeys.get(5).unwrap().keys.contains_key(key) || data.hotkeys.get(5).unwrap().keys.len() != data.attivazione.keys().len(){
                         found=false;
                         break;
+
+
+            
                     }
                     
                 }
@@ -711,6 +676,41 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                         ctx.submit_command(druid::commands::CLOSE_WINDOW.to(ctx.window_id()));
                         
                                         
+                }}
+
+
+                let mut found= true;
+                if !data.is_found
+                {
+                    for key in data.attivazione.keys() 
+                {
+                    if !data.hotkeys.get(6).unwrap().keys.contains_key(key) || data.hotkeys.get(6).unwrap().keys.len() != data.attivazione.keys().len(){
+                        found=false;
+                        break;
+                    }
+                    
+                }
+                if found==true {
+
+                    
+                    data.hotkeys.clear();
+                    
+                    data.attivazione.clear();
+                    data.is_found = true;
+                    data.last_key_event = None;
+                    if data.myimage.height()!= 0 && data.myimage.width()!=0
+                                        {let clipboard = &mut arboard::Clipboard::new().unwrap();
+
+                                        let bytes = data.myimage.as_bytes();
+                                        let img_data = ImageData {
+                                            width: data.myimage.width() as usize,
+                                            height: data.myimage.height() as usize,
+                                            bytes: bytes.as_ref().into(),
+                                        };
+                                        clipboard.set_image(img_data).unwrap();}
+
+                        
+
                 }}
 
                 data.attivazione.clear();
@@ -755,8 +755,11 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
             }
             if os !="windows" 
             {
+           
                 color =  Color::BLACK;
             }
+
+
            
             match selector {
             false => 
@@ -806,10 +809,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                 ))
                                 .with_child(Button::new("Choose your shortkeys").on_click(
                                     |ctx: &mut EventCtx, data: &mut AppData, _: &Env| {
-                                        // data.start_position = None;
-                                        // data.end_position = None;
-                                        // data.start_position_to_display = None;
-                                        // data.end_position_to_display = None;
+                                        
                                         data.is_dragging = false;
                                         data.is_selecting = false;
                                         data.modify = false;
@@ -817,8 +817,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         data.is_found = false;
                                         data.last_key_event = None;
                                         data.show_drawing=true;
-                                        // data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-                                        // data.switch_window=true;
+                                      
                                         let shortkeys_window = WindowDesc::new(shortkeys_window::ui_builder())    
                                         .transparent(false)
                                         .title("Choose your personal shorkeys configuration. Selecting same combinations for different commands isn't allowed")    
@@ -832,17 +831,13 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                 ))
                                 .with_child(Button::new("Choose image format").on_click(
                                     |ctx: &mut EventCtx, data: &mut AppData, _: &Env| {
-                                        // data.start_position = None;
-                                        // data.end_position = None;
-                                        // data.start_position_to_display = None;
-                                        // data.end_position_to_display = None;
+                                        
                                         data.is_dragging = false;
                                         data.is_selecting = false;
                                         data.modify = false;
                                         data.is_found = false;
                                         data.last_key_event = None;
-                                        // data.rect = Rect::new(0.0, 0.0, 0.0, 0.0);
-                                        // data.switch_window=true;
+                                        
                                         ctx.submit_command(
                                             druid::commands::CLOSE_WINDOW.to(ctx.window_id())
                                         );
@@ -860,6 +855,20 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                        
 
                                     },
+                                ))
+                                .with_child(Button::new("Copy to clipboard").on_click(
+                                    |_ctx: &mut EventCtx, data: &mut AppData, _: &Env|  {
+                                        if data.myimage.height()!= 0 && data.myimage.width()!=0
+                                        {let clipboard = &mut arboard::Clipboard::new().unwrap();
+
+                                        let bytes = data.myimage.as_bytes();
+                                        let img_data = ImageData {
+                                            width: data.myimage.width() as usize,
+                                            height: data.myimage.height() as usize,
+                                            bytes: bytes.as_ref().into(),
+                                        };
+                                        clipboard.set_image(img_data).unwrap();}
+                                    }
                                 )),
                         )
                         .with_child(Label::new(

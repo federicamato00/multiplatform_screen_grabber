@@ -1,6 +1,5 @@
-use arboard::ImageData;
 use druid::Point;
-use image::{EncodableLayout, ImageBuffer, Rgba};
+use image::{ImageBuffer, Rgba};
 
 use screenshots::Screen;
 
@@ -56,16 +55,15 @@ pub(crate) fn save_screen_new(data: &mut AppData) {
         .save(name_capture.to_owned() + "." + form.clone())
         .unwrap();
     // let name = name_capture.to_owned() + "." + form.clone();
-    let clipboard = &mut arboard::Clipboard::new().unwrap();
+    // let clipboard = &mut arboard::Clipboard::new().unwrap();
 
-    let bytes = myimage.as_bytes();
-    let img_data = ImageData {
-        width: myimage.width() as usize,
-        height: myimage.height() as usize,
-        bytes: bytes.as_ref().into(),
-    };
-    clipboard.set_image(img_data).unwrap();
-    data.hide_buttons = false;
+    // let bytes = myimage.as_bytes();
+    // let img_data = ImageData {
+    //     width: myimage.width() as usize,
+    //     height: myimage.height() as usize,
+    //     bytes: bytes.as_ref().into(),
+    // };
+    // clipboard.set_image(img_data).unwrap();
 }
 
 // pub fn screen(

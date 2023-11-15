@@ -54,6 +54,8 @@ fn main() {
         count: 0,
         myimage: ImageBuffer::new(0, 0),
         show_drawing: false,
+        copy_clipboard_modifier: "Ctrl".into(),
+        copy_clipboard_key: (Key::Character("s".to_string())).to_string(),
     };
 
     AppLauncher::with_window(main_window)

@@ -70,6 +70,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 ("Shift", "Shift".to_string()),
                 ("Escape", "Escape".to_string()),
                 ("Enter", "Enter".to_string()),
+                ("None", "None".to_string()),
             ])
             .lens(drawing_area::AppData::save_image_modifier),
         )
@@ -91,6 +92,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 ("Shift", "Shift".to_string()),
                 ("Escape", "Escape".to_string()),
                 ("Enter", "Enter".to_string()),
+                ("None", "None".to_string()),
             ])
             .lens(drawing_area::AppData::quit_app_modifier),
         )
@@ -112,6 +114,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 ("Shift", "Shift".to_string()),
                 ("Escape", "Escape".to_string()),
                 ("Enter", "Enter".to_string()),
+                ("None", "None".to_string()),
             ])
             .lens(drawing_area::AppData::edit_image_modifier),
         )
@@ -132,6 +135,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 ("Shift", "Shift".to_string()),
                 ("Escape", "Escape".to_string()),
                 ("Enter", "Enter".to_string()),
+                ("None", "None".to_string()),
             ])
             .lens(drawing_area::AppData::start_image_modifier),
         )
@@ -153,6 +157,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 ("Shift", "Shift".to_string()),
                 ("Escape", "Escape".to_string()),
                 ("Enter", "Enter".to_string()),
+                ("None", "None".to_string()),
             ])
             .lens(drawing_area::AppData::restart_app_modifier),
         )
@@ -173,6 +178,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 ("Shift", "Shift".to_string()),
                 ("Escape", "Escape".to_string()),
                 ("Enter", "Enter".to_string()),
+                ("None", "None".to_string()),
             ])
             .lens(drawing_area::AppData::restart_format_app_modifier),
         )
@@ -184,6 +190,29 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 .disabled_if(|data, _| {
                     data.restart_format_app_modifier == "Escape"
                         || data.restart_format_app_modifier == "Enter"
+                }),
+        );
+
+    let copy_to_clipboard = Flex::row()
+        .with_child(Label::new("Copy modifier: "))
+        .with_child(
+            RadioGroup::row(vec![
+                ("Ctrl", "Ctrl".to_string()),
+                ("Shift", "Shift".to_string()),
+                ("Escape", "Escape".to_string()),
+                ("Enter", "Enter".to_string()),
+                ("None", "None".to_string()),
+            ])
+            .lens(drawing_area::AppData::copy_clipboard_modifier),
+        )
+        .with_child(Label::new("Copy Image Key: "))
+        .with_child(
+            TextBox::new()
+                .controller(MyController)
+                .lens(drawing_area::AppData::copy_clipboard_key)
+                .disabled_if(|data, _| {
+                    data.copy_clipboard_modifier == "Escape"
+                        || data.copy_clipboard_modifier == "Enter"
                 }),
         );
 
@@ -199,6 +228,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 "Shift" => Some(Key::Shift),
                 "Escape" => Some(Key::Escape),
                 "Enter" => Some(Key::Enter),
+                "None" => None,
                 _ => None,
             };
             let key = data.save_image_key.clone();
@@ -225,6 +255,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 "Shift" => Some(Key::Shift),
                 "Escape" => Some(Key::Escape),
                 "Enter" => Some(Key::Enter),
+                "None" => None,
                 _ => None,
             };
             let mut shortcut = MyHotkey {
@@ -251,6 +282,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 "Shift" => Some(Key::Shift),
                 "Escape" => Some(Key::Escape),
                 "Enter" => Some(Key::Enter),
+                "None" => None,
                 _ => None,
             };
             let mut shortcut = MyHotkey {
@@ -277,6 +309,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 "Shift" => Some(Key::Shift),
                 "Escape" => Some(Key::Escape),
                 "Enter" => Some(Key::Enter),
+                "None" => None,
                 _ => None,
             };
             let mut shortcut = MyHotkey {
@@ -304,6 +337,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 "Shift" => Some(Key::Shift),
                 "Escape" => Some(Key::Escape),
                 "Enter" => Some(Key::Enter),
+                "None" => None,
                 _ => None,
             };
             let mut shortcut = MyHotkey {
@@ -330,6 +364,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 "Shift" => Some(Key::Shift),
                 "Escape" => Some(Key::Escape),
                 "Enter" => Some(Key::Enter),
+                "None" => None,
                 _ => None,
             };
             let mut shortcut = MyHotkey {
@@ -345,6 +380,34 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 shortcut.keys.insert(
                     restart_format_app_modifier.clone().unwrap(),
                     restart_format_app_modifier.clone().unwrap(),
+                );
+            }
+            data.hotkeys.push(shortcut);
+
+            if data.copy_clipboard_modifier.eq("Shift") {
+                data.copy_clipboard_key.make_ascii_uppercase();
+            }
+            let copy_clipboard_modifier = match data.copy_clipboard_modifier.as_str() {
+                "Ctrl" => Some(Key::Control),
+                "Shift" => Some(Key::Shift),
+                "Escape" => Some(Key::Escape),
+                "Enter" => Some(Key::Enter),
+                "None" => None,
+                _ => None,
+            };
+            let mut shortcut = MyHotkey {
+                keys: HashMap::new(),
+            };
+            let key = data.copy_clipboard_key.clone();
+            if !key.is_empty() {
+                shortcut
+                    .keys
+                    .insert(Key::Character(key.clone()), Key::Character(key.clone()));
+            }
+            if copy_clipboard_modifier != None {
+                shortcut.keys.insert(
+                    copy_clipboard_modifier.clone().unwrap(),
+                    copy_clipboard_modifier.clone().unwrap(),
                 );
             }
             data.hotkeys.push(shortcut);
@@ -868,6 +931,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
         .with_child(cancel_image)
         .with_child(restart)
         .with_child(choose_format)
+        .with_child(copy_to_clipboard)
         .with_child(apply_button)
         .controller(MyViewHandler)
 }
