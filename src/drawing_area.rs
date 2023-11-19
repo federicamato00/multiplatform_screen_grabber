@@ -933,7 +933,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                             s,
                         ))
                         .with_child(Image::new(ImageBuf::from_raw(data.myimage.clone().into_raw(),ImageFormat::RgbaSeparate, data.myimage.width() as usize, data.myimage.height() as usize)).center()
-                        .fix_size(dimensioni.width() as f64/1.4 as f64 , dimensioni.height() as f64 / 1.4 as f64 )
+                        .fix_size(dimensioni.width() as f64/1.8 as f64 , dimensioni.height() as f64 / 1.8 as f64 ).center()
                         .border(color_border, 1.0)),
                 )
                 

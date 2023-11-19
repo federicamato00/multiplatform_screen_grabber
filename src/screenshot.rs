@@ -29,15 +29,19 @@ pub(crate) fn screen_new(
     if start_position != end_position {
         end_position.y = end_position.y - 2.1;
         end_position.x = end_position.x - 2.1;
-        let image = screen
-            .capture_area(
-                (start_position.x + 2.1) as i32,
-                (start_position.y + 2.1) as i32,
-                ((end_position.x - start_position.x) - 1.) as u32,
-                ((end_position.y - start_position.y) - 1.) as u32,
-            )
-            .unwrap();
-        return image;
+        let image = screen.capture_area(
+            (start_position.x + 2.1) as i32,
+            (start_position.y + 2.1) as i32,
+            ((end_position.x - start_position.x) - 1.) as u32,
+            ((end_position.y - start_position.y) - 1.) as u32,
+        );
+
+        if !image.is_err() {
+            return image.unwrap();
+        } else {
+            let image = Screen::from_point(0, 0).unwrap().capture().unwrap();
+            return image;
+        }
     } else {
         let image = Screen::from_point(0, 0).unwrap().capture().unwrap();
         return image;
