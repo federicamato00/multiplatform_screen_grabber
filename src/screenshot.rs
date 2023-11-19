@@ -1,61 +1,71 @@
-use arboard::ImageData;
 use druid::Point;
-use image::{EncodableLayout, ImageBuffer, Rgba};
-use screenshots::{self, Screen};
+use image::{ImageBuffer, Rgba};
 
-use crate::window_format::MyRadio;
+use screenshots::Screen;
+
+use crate::{drawing_area::AppData, window_format::MyRadio};
 
 pub(crate) fn screen_new(
     mut start_position: Point,
     mut end_position: Point,
 ) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
     let screen = Screen::from_point(0, 0).unwrap();
-    if start_position.x > end_position.x && start_position.y > end_position.y {
-        let (prov_x0, prov_y0) = (start_position.x, start_position.y);
-        (start_position.x, start_position.y) = (end_position.x, end_position.y);
-        (end_position.x, end_position.y) = (prov_x0, prov_y0);
+    if start_position.x > end_position.x {
+        let prov_x0 = start_position.x;
+        start_position.x = end_position.x;
+        end_position.x = prov_x0;
     }
-    let image = screen
-        .capture_area(
-            start_position.x as i32 + 1,
-            start_position.y as i32 + 1,
-            ((end_position.x - start_position.x) - 1.5) as u32,
-            ((end_position.y - start_position.y) - 1.5) as u32,
-        )
-        .unwrap();
-    image
+    if start_position.y > end_position.y {
+        let prov_y0 = start_position.y;
+        start_position.y = end_position.y;
+        end_position.y = prov_y0;
+    }
+
+    // println!("start {:?}, end: {:?}", start_position, end_position);
+    if start_position != end_position {
+        end_position.y = end_position.y - 2.1;
+        end_position.x = end_position.x - 2.1;
+        let image = screen
+            .capture_area(
+                (start_position.x + 2.1) as i32,
+                (start_position.y + 2.1) as i32,
+                ((end_position.x - start_position.x) - 1.) as u32,
+                ((end_position.y - start_position.y) - 1.) as u32,
+            )
+            .unwrap();
+        return image;
+    } else {
+        let image = Screen::from_point(0, 0).unwrap().capture().unwrap();
+        return image;
+    }
 }
 
-pub(crate) fn save_screen_new(
-    format: MyRadio,
-    name: String,
-    image: ImageBuffer<Rgba<u8>, Vec<u8>>,
-) {
-    let new_format = format;
-    let name_capture = name;
+pub(crate) fn save_screen_new(data: &mut AppData) {
+    let new_format = data.radio_group;
+    // let name_capture = data.label.clone();
     let form = match new_format {
         MyRadio::Png => "png",
         MyRadio::Jpeg => "jpeg",
         MyRadio::Gif => "gif",
     };
-    let mut myimage = image;
-    if myimage.width() == 0 && myimage.height() == 0 {
-        myimage = Screen::from_point(0, 0).unwrap().capture().unwrap();
-    }
+    let myimage = data.myimage.clone();
+    // println!("image: {:?}", myimage.width());
+    println!("{:?}", data.file_path);
     myimage
-        .save(name_capture.to_owned() + "." + form.clone())
+        .save(data.file_path.clone() + "." + form.clone())
         .unwrap();
     // let name = name_capture.to_owned() + "." + form.clone();
-    let clipboard = &mut arboard::Clipboard::new().unwrap();
+    // let clipboard = &mut arboard::Clipboard::new().unwrap();
 
-    let bytes = myimage.as_bytes();
-    let img_data = ImageData {
-        width: myimage.width() as usize,
-        height: myimage.height() as usize,
-        bytes: bytes.as_ref().into(),
-    };
-    clipboard.set_image(img_data).unwrap();
+    // let bytes = myimage.as_bytes();
+    // let img_data = ImageData {
+    //     width: myimage.width() as usize,
+    //     height: myimage.height() as usize,
+    //     bytes: bytes.as_ref().into(),
+    // };
+    // clipboard.set_image(img_data).unwrap();
 }
+
 // pub fn screen(
 //     format: MyRadio,
 //     start_position: Arc<Mutex<Option<(f64, f64)>>>,
