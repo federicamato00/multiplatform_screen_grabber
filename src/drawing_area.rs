@@ -3,6 +3,7 @@ use std::{collections::HashMap, env};
 use arboard::ImageData;
 use druid::{ImageBuf,Lens,Color,Data, Env, Event, EventCtx, Insets, PaintCtx, Point, Rect, RenderContext,Size, Widget, WidgetExt, WindowDesc, FileDialogOptions};
 use druid::widget::{BackgroundBrush, Button, Controller, Flex, Image, Label, Padding, ViewSwitcher};
+use druid_shell::TimerToken;
 use druid_shell::{keyboard_types::Key, KeyEvent, piet::ImageFormat, MouseButton};
 use image::{EncodableLayout, ImageBuffer,Rgba};
 use crate::function;
@@ -932,7 +933,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                             s,
                         ))
                         .with_child(Image::new(ImageBuf::from_raw(data.myimage.clone().into_raw(),ImageFormat::RgbaSeparate, data.myimage.width() as usize, data.myimage.height() as usize)).center()
-                        .fix_size(dimensioni.width() as f64/1.2 as f64 , dimensioni.height() as f64 / 1.2 as f64 )
+                        .fix_size(dimensioni.width() as f64/1.4 as f64 , dimensioni.height() as f64 / 1.4 as f64 )
                         .border(color_border, 1.0)),
                 )
                 

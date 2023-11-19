@@ -1,5 +1,5 @@
 use druid::Point;
-use image::{ImageBuffer, ImageFormat, Rgba};
+use image::{ImageBuffer, Rgba};
 
 use screenshots::Screen;
 
