@@ -1,7 +1,17 @@
+use chrono::Local;
 use druid::{MouseEvent, Point};
 
 use crate::drawing_area::{self, AppData, DragHandle};
-
+pub(crate) fn default_convention(path: String) -> String {
+    let new_path = path;
+    new_path
+}
+pub(crate) fn time_convention(path: String) -> String {
+    let now = Local::now().format("%d-%m-%Y_%H-%M").to_string();
+    let new_path = path + "_" + &now;
+    new_path
+}
+// pub(crate) fn numeric_convention(path: String) -> String {}
 pub(crate) fn some_fields_are_equal(data: &drawing_area::AppData) -> bool {
     if (data.start_image_modifier == data.save_image_modifier
         && data.start_image_key == data.save_image_key)

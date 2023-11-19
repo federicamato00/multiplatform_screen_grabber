@@ -7,6 +7,7 @@ use druid_shell::{keyboard_types::Key, KeyEvent, piet::ImageFormat, MouseButton}
 use image::{EncodableLayout, ImageBuffer,Rgba};
 use crate::function;
 use crate::screenshot;
+use crate::convention_window;
 use crate::shortkeys_window;
 use crate::window_format;
 use scrap::Display;
@@ -45,6 +46,7 @@ pub struct AppData {
     pub(crate) copy_clipboard_modifier: String,
     pub(crate) copy_clipboard_key: String,
     pub(crate) file_path: String,
+    pub(crate) my_convention: Conventions,
     #[data(ignore)]
     pub(crate) myimage: ImageBuffer<Rgba<u8>, Vec<u8>>,
     #[data(ignore)]
@@ -75,6 +77,12 @@ pub enum DragHandle {
     TopRight,
     BottomLeft,
     BottomRight,
+}
+#[derive(Clone, Data, PartialEq, Copy, Debug)]
+pub enum Conventions {
+    TimeConvention,
+    DefaultConvention,
+    // NumericConvention,
 }
 
 
@@ -454,9 +462,7 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                 if let Some(file_info) = cmd.get(druid::commands::SAVE_FILE_AS) {
                     data.file_path = file_info.path().to_path_buf().to_str().unwrap().to_string();
                     
-                    if data.myimage.width()!=0 && data.myimage.height()!=0 {
-                        screenshot::save_screen_new(data);
-                    }
+                    
                     ctx.set_handled();
                 } 
             }
@@ -761,7 +767,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
             else {
                 combinazione = data.start_image_key.clone();
             }
-            let s = format!("Per fare lo screen all'intero schermo, premi Start (o la tua shortcut {:?}) + click del mouse", combinazione);
+            let s = format!("To capture the entire screen click on Start (or press your shortcut {:?}) + mouse click on the screen", combinazione);
             if data.myimage.width()==0 && data.myimage.height() == 0 {
                 color_border= Color::TRANSPARENT;
             }
@@ -882,12 +888,40 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         clipboard.set_image(img_data).unwrap();}
                                     }
                                 ))
-                                .with_child(Button::new("Scegli percorso immagine...").on_click(
+                                .with_child(Button::new("Choose image path for savings").on_click(
                                     |ctx: &mut EventCtx, _data: &mut AppData, _: &Env|  {
                                         
                                         let file_options = FileDialogOptions::new().default_name("screenshot_grabbed");
                                         
                                         ctx.submit_command(druid::commands::SHOW_SAVE_PANEL.with(file_options));
+                                        
+                                        
+                                        
+                                    }
+                                ))
+                                .with_child(Button::new("Choose name convention").on_click(
+                                    |ctx: &mut EventCtx, data: &mut AppData, _: &Env|  {
+                                        
+                                       
+                                        
+                                        data.is_dragging = false;
+                                        data.is_selecting = false;
+                                        data.modify = false;
+                                        data.is_found = false;
+                                        data.last_key_event = None;
+                                        
+                                        ctx.submit_command(
+                                            druid::commands::CLOSE_WINDOW.to(ctx.window_id())
+                                        );
+                                        let convention_window = WindowDesc::new(convention_window::build_ui())    
+                                        .transparent(false)
+                                        .title("Choose the convention")    
+                                        .window_size(Size::new(200.0, 200.0))
+                                        .set_always_on_top(true)    .show_titlebar(true)
+                                        ;
+                                        ctx.new_window(convention_window);
+                                        
+                                        
                                         
                                         
                                         

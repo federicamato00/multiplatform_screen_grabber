@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use drawing_area::Conventions;
 use druid::LocalizedString;
 use image::ImageBuffer;
 use window_format::MyRadio;
@@ -8,12 +9,12 @@ use druid::{AppLauncher, Rect, WindowDesc};
 
 use druid_shell::keyboard_types::Key;
 
+mod convention_window;
 mod drawing_area;
 mod function;
 mod screenshot;
 mod shortkeys_window;
 mod window_format;
-
 fn main() {
     let main_window = WindowDesc::new(shortkeys_window::ui_builder())
         .title(LocalizedString::new("Keyboard Shortcut Settings"))
@@ -56,7 +57,8 @@ fn main() {
         show_drawing: false,
         copy_clipboard_modifier: "Ctrl".into(),
         copy_clipboard_key: (Key::Character("s".to_string())).to_string(),
-        file_path: "/src/".to_string(),
+        file_path: "".to_string(),
+        my_convention: Conventions::DefaultConvention,
     };
 
     AppLauncher::with_window(main_window)

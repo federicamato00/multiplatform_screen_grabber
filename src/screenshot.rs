@@ -3,7 +3,11 @@ use image::{ImageBuffer, Rgba};
 
 use screenshots::Screen;
 
-use crate::{drawing_area::AppData, window_format::MyRadio};
+use crate::{
+    drawing_area::{self, AppData},
+    function,
+    window_format::MyRadio,
+};
 
 pub(crate) fn screen_new(
     mut start_position: Point,
@@ -51,9 +55,16 @@ pub(crate) fn save_screen_new(data: &mut AppData) {
     let myimage = data.myimage.clone();
     // println!("image: {:?}", myimage.width());
     println!("{:?}", data.file_path);
-    myimage
-        .save(data.file_path.clone() + "." + form.clone())
-        .unwrap();
+    let new_path = match data.my_convention {
+        drawing_area::Conventions::DefaultConvention => {
+            function::default_convention(data.file_path.clone())
+        }
+        drawing_area::Conventions::TimeConvention => {
+            function::time_convention(data.file_path.clone())
+        } // _ => String::new(),
+    };
+    println!("{:?}", new_path);
+    myimage.save(new_path + "." + form.clone()).unwrap();
     // let name = name_capture.to_owned() + "." + form.clone();
     // let clipboard = &mut arboard::Clipboard::new().unwrap();
 
