@@ -1,5 +1,5 @@
 use druid::Point;
-use image::{ImageBuffer, Rgba};
+use image::{ImageBuffer, ImageFormat, Rgba};
 
 use screenshots::Screen;
 
@@ -66,18 +66,9 @@ pub(crate) fn save_screen_new(data: &mut AppData) {
             function::numeric_convention(data.file_path.clone(), data)
         }
     };
-
-    myimage.save(new_path + "." + form.clone()).unwrap();
-    // let name = name_capture.to_owned() + "." + form.clone();
-    // let clipboard = &mut arboard::Clipboard::new().unwrap();
-
-    // let bytes = myimage.as_bytes();
-    // let img_data = ImageData {
-    //     width: myimage.width() as usize,
-    //     height: myimage.height() as usize,
-    //     bytes: bytes.as_ref().into(),
-    // };
-    // clipboard.set_image(img_data).unwrap();
+    std::thread::spawn(move || {
+        myimage.save(new_path + "." + form).unwrap();
+    });
 }
 
 // pub fn screen(
