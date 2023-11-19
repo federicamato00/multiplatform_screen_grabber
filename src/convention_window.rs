@@ -73,7 +73,10 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                     "Time convention ",
                     drawing_area::Conventions::TimeConvention,
                 ),
-                // ("Gif", MyRadio::Gif),
+                (
+                    "Numeric convention ",
+                    drawing_area::Conventions::NumericConvention,
+                ),
             ])
             .lens(AppData::my_convention),
         )

@@ -54,16 +54,19 @@ pub(crate) fn save_screen_new(data: &mut AppData) {
     };
     let myimage = data.myimage.clone();
     // println!("image: {:?}", myimage.width());
-    println!("{:?}", data.file_path);
+
     let new_path = match data.my_convention {
         drawing_area::Conventions::DefaultConvention => {
             function::default_convention(data.file_path.clone())
         }
         drawing_area::Conventions::TimeConvention => {
             function::time_convention(data.file_path.clone())
-        } // _ => String::new(),
+        }
+        drawing_area::Conventions::NumericConvention => {
+            function::numeric_convention(data.file_path.clone(), data)
+        }
     };
-    println!("{:?}", new_path);
+
     myimage.save(new_path + "." + form.clone()).unwrap();
     // let name = name_capture.to_owned() + "." + form.clone();
     // let clipboard = &mut arboard::Clipboard::new().unwrap();

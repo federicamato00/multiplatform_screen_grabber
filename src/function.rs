@@ -11,7 +11,11 @@ pub(crate) fn time_convention(path: String) -> String {
     let new_path = path + "_" + &now;
     new_path
 }
-// pub(crate) fn numeric_convention(path: String) -> String {}
+pub(crate) fn numeric_convention(path: String, data: &mut AppData) -> String {
+    data.counter += 1;
+    let new_path = path + "_" + &data.counter.to_string();
+    new_path
+}
 pub(crate) fn some_fields_are_equal(data: &drawing_area::AppData) -> bool {
     if (data.start_image_modifier == data.save_image_modifier
         && data.start_image_key == data.save_image_key)

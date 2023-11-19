@@ -46,6 +46,7 @@ pub struct AppData {
     pub(crate) copy_clipboard_modifier: String,
     pub(crate) copy_clipboard_key: String,
     pub(crate) file_path: String,
+    pub(crate) counter: i32,
     pub(crate) my_convention: Conventions,
     #[data(ignore)]
     pub(crate) myimage: ImageBuffer<Rgba<u8>, Vec<u8>>,
@@ -82,7 +83,7 @@ pub enum DragHandle {
 pub enum Conventions {
     TimeConvention,
     DefaultConvention,
-    // NumericConvention,
+    NumericConvention,
 }
 
 
@@ -758,8 +759,8 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
     let skip_panel = ViewSwitcher::new(
           move|data: &AppData, _env| data.hide_buttons ,
          move|selector,  data: & AppData, _env| {
-            let os = std::env::consts::OS;
-            let mut color = Color::TRANSPARENT;
+            
+            
             let mut color_border = Color::WHITE;
             let combinazione ;
             if data.start_image_modifier!= "None".to_string()
@@ -771,11 +772,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
             if data.myimage.width()==0 && data.myimage.height() == 0 {
                 color_border= Color::TRANSPARENT;
             }
-            if os !="windows" 
-            {
-           
-                color =  Color::BLACK;
-            }
+            
 
 
            
@@ -942,7 +939,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                 .fix_size(
                     Display::primary().expect("erro").width() as f64,
                     Display::primary().expect("erro").height() as f64,
-                ).background(BackgroundBrush::Color(color)),
+                ).background(BackgroundBrush::Color(Color::rgba(60./255.,8./255.,120./255.,1.))),
             ),
             true => {
           

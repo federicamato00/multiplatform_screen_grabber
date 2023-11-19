@@ -49,7 +49,7 @@ fn main() {
         is_found: false,
         last_key_event: None,
         hide_buttons: false,
-
+        counter: 0,
         tasti: HashMap::new(),
         attivazione: HashMap::new(),
         count: 0,
@@ -57,7 +57,7 @@ fn main() {
         show_drawing: false,
         copy_clipboard_modifier: "Ctrl".into(),
         copy_clipboard_key: (Key::Character("s".to_string())).to_string(),
-        file_path: "".to_string(),
+        file_path: "screenshot_grabbed".to_string(),
         my_convention: Conventions::DefaultConvention,
     };
 
