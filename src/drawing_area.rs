@@ -943,6 +943,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         .title("Instructions")    
                                         .window_size(Size::new(1000.0, 1000.0))
                                         .set_always_on_top(true)    .show_titlebar(true)
+                                        .resizable(false)
                                         ;
                                         ctx.new_window(information_window);
                                 }))
