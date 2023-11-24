@@ -86,7 +86,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
     let instructions = vec![
         ("Start: ", "Pressing this button you are able to make the user interface disappear and capture the screen. \nClicking and dragging the mouse pointer you can draw the area to capture,\notherwise just clicking on the screen you can capture the whole monitor"),
         ("Save screen: ", "Pressing this button you can save your captured image, \ndefault path is the same path as the executable of the program "),
-        ("Close: ", "Pressing this button the entire application it's close."),
+        ("Close: ", "Pressing this button the entire application it's closed."),
         ("Edit: ", "Pressing this button you are able to edit your capture area, by clicking on one of the drawn rectangle corners and then \ndragging the clicked corner. To stop your editing step you can click on any other point of the screen"),
         ("Choose your shortkeys: ", "Pressing this button you can set up your favorite shortkeys related to most of the features"),
         ("Choose image format: ", "Pressing this button, you can select the format the image must be saved with"),

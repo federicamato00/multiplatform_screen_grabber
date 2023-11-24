@@ -71,6 +71,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
 
     Flex::column()
         .with_child(Label::new("Default name: screenshot_grabbed"))
+        .with_spacer(25.)
         .with_child(
             RadioGroup::column(vec![
                 ("Png", MyRadio::Png),

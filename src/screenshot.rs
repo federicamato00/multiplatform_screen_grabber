@@ -10,36 +10,45 @@ use crate::{
 };
 
 pub(crate) fn screen_new(
-    mut start_position: Point,
-    mut end_position: Point,
+    start_position: Point,
+    end_position: Point,
 ) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
     let screen = Screen::from_point(0, 0).unwrap();
-    if start_position.x > end_position.x {
-        let prov_x0 = start_position.x;
-        start_position.x = end_position.x;
-        end_position.x = prov_x0;
-    }
-    if start_position.y > end_position.y {
-        let prov_y0 = start_position.y;
-        start_position.y = end_position.y;
-        end_position.y = prov_y0;
-    }
 
-    // println!("start {:?}, end: {:?}", start_position, end_position);
     if start_position != end_position {
-        end_position.y = end_position.y - 2.1;
-        end_position.x = end_position.x - 2.1;
+        let mut end_y = end_position.y;
+        let mut end_x = end_position.x;
+        let mut start_x = start_position.x;
+        let mut start_y = start_position.y;
+        if start_x > end_x {
+            let prov_x0 = start_x;
+            start_x = end_x;
+            end_x = prov_x0;
+        }
+        if start_y > end_y {
+            let prov_y0 = start_y;
+            start_y = end_y;
+            end_y = prov_y0;
+        }
+        end_y = end_y - 2.1;
+        end_x = end_x - 2.1;
+        start_x = start_x + 2.1;
+        start_y = start_y + 2.1;
+        let mut width = (end_x - start_x) - 1.;
+        let mut height = end_y - start_y - 1.;
+        if width < 1. {
+            width = 1.;
+        }
+        if height < 1. {
+            height = 1.;
+        }
+
         let image = screen
-            .capture_area(
-                (start_position.x + 2.1) as i32,
-                (start_position.y + 2.1) as i32,
-                ((end_position.x - start_position.x) - 1.) as u32,
-                ((end_position.y - start_position.y) - 1.) as u32,
-            )
+            .capture_area(start_x as i32, start_y as i32, width as u32, height as u32)
             .unwrap();
         return image;
     } else {
-        let image = Screen::from_point(0, 0).unwrap().capture().unwrap();
+        let image = screen.capture().unwrap();
         return image;
     }
 }
