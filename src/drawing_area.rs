@@ -1,18 +1,22 @@
 
+use std::sync::{Arc, Condvar, Mutex};
+
 use std::{collections::HashMap, env};
 use arboard::ImageData;
+
 use druid::{ImageBuf,Lens,Color,Data, Env, Event, EventCtx, Insets, PaintCtx, Point, Rect, RenderContext,Size, Widget, WidgetExt, WindowDesc, FileDialogOptions};
 use druid::widget::{BackgroundBrush, Button, Controller, Flex, Image, Label, Padding, ViewSwitcher};
-use druid_shell::TimerToken;
+
 use druid_shell::{keyboard_types::Key, KeyEvent, piet::ImageFormat, MouseButton};
+
 use image::{EncodableLayout, ImageBuffer,Rgba};
 use crate::function;
-use crate::screenshot;
+use crate::screenshot::{self};
 use crate::convention_window;
 use crate::shortkeys_window;
 use crate::window_format;
 use scrap::Display;
-
+use crate::information_window;
 
 
 #[derive(Clone, Data, Lens)]
@@ -49,6 +53,7 @@ pub struct AppData {
     pub(crate) file_path: String,
     pub(crate) counter: i32,
     pub(crate) my_convention: Conventions,
+    pub(crate) myselector : Arc<(Mutex<bool>, Condvar)>,
     #[data(ignore)]
     pub(crate) myimage: ImageBuffer<Rgba<u8>, Vec<u8>>,
     #[data(ignore)]
@@ -60,6 +65,7 @@ pub struct AppData {
     #[data(ignore)]
     pub(crate) attivazione: HashMap<Key,Key>,
     pub(crate) count: i32,
+    
 }
 
 
@@ -90,24 +96,26 @@ pub enum Conventions {
 
 struct DrawingArea;
 impl Widget<AppData> for DrawingArea {
+
+
     fn event(&mut self, ctx: &mut EventCtx, event: &druid::Event, data: &mut AppData, _env: &Env) {
         
        
         match event {
             
             
-            Event::WindowConnected => {
+            // Event::WindowConnected => {
+            //     println!("ciao");
+            //     // Imposta la dimensione della finestra
+            //     let display_primary = Display::primary().expect("couldn't find primary display");
+            //     let size = Size::new(
+            //         display_primary.width() as f64,
+            //         display_primary.height() as f64,
+            //     ); // Imposta le dimensioni desiderate qui
+            //     ctx.window().set_size(size);
+            //     //println!("size window {:?}",size);
                 
-                // Imposta la dimensione della finestra
-                let display_primary = Display::primary().expect("couldn't find primary display");
-                let size = Size::new(
-                    display_primary.width() as f64,
-                    display_primary.height() as f64,
-                ); // Imposta le dimensioni desiderate qui
-                ctx.window().set_size(size);
-                //println!("size window {:?}",size);
-                
-            }
+            // }
        
             druid::Event::MouseDown(mouse_event) => {
                 
@@ -351,8 +359,10 @@ impl Widget<AppData> for DrawingArea {
                     data.hide_buttons = false;
                 }
                 // println!("{:?}",data.rect);
-               
-                    data.myimage= screenshot::screen_new(data.start_position.unwrap(),data.end_position.unwrap());
+                if data.start_position!=None && data.end_position!=None
+                    {
+                        data.myimage= screenshot::screen_new(data.start_position.unwrap(),data.end_position.unwrap());
+                    }
                 
             }
 
@@ -748,20 +758,17 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
 
 
 
-
 pub(crate) fn build_ui() -> impl Widget<AppData> {
    
-    // let mut save = false;
-    // let cell = RefCell::new(save);
-    // let cell2 = cell.clone();
-    // let cell3= cell2.clone();
+   
     
     let dimensioni = Display::primary().expect("error");            
     let skip_panel = ViewSwitcher::new(
           move|data: &AppData, _env| data.hide_buttons ,
          move|selector,  data: & AppData, _env| {
+          
             
-            
+
             let mut color_border = Color::WHITE;
             let combinazione ;
             if data.start_image_modifier!= "None".to_string()
@@ -775,11 +782,13 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
             }
             
 
-
+            
            
             match selector {
             false => 
-            
+            {
+               
+                                
             Box::new(
                 Box::new(
                     Flex::column()
@@ -924,7 +933,20 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         
                                         
                                     }
-                                )),
+                                ))
+                                .with_child(Button::new("?").on_click(|ctx: &mut EventCtx, _data: &mut AppData, _: &Env| {
+                                    ctx.submit_command(
+                                            druid::commands::CLOSE_WINDOW.to(ctx.window_id())
+                                        );
+                                    let information_window = WindowDesc::new(information_window::build_ui())    
+                                        .transparent(false)
+                                        .title("Instructions")    
+                                        .window_size(Size::new(1000.0, 1000.0))
+                                        .set_always_on_top(true)    .show_titlebar(true)
+                                        ;
+                                        ctx.new_window(information_window);
+                                }))
+                                
                         )
                         .with_child(Label::new(
                             "Per uscire dalla modalità edit, premi fuori dall'area disegnata",
@@ -941,9 +963,10 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                     Display::primary().expect("erro").width() as f64,
                     Display::primary().expect("erro").height() as f64,
                 ).background(BackgroundBrush::Color(Color::rgba(60./255.,8./255.,120./255.,1.))),
-            ),
+            )
+        }
             true => {
-          
+             
                 Box::new(Flex::column().with_child(DrawingArea))
                
             },

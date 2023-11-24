@@ -62,17 +62,18 @@ impl Controller<String, TextBox<String>> for MyController {
 }
 
 pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
-    let rs = RadioGroup::row(vec![
-        ("Ctrl", "Ctrl".to_string()),
-        ("Shift", "Shift".to_string()),
-        ("Escape", "Escape".to_string()),
-        ("Enter", "Enter".to_string()),
-        ("None", "None".to_string()),
-    ]);
-
     let save_image = Flex::row()
         .with_child(Label::new("Save modifier: "))
-        .with_child(rs.lens(drawing_area::AppData::save_image_modifier))
+        .with_child(
+            RadioGroup::row(vec![
+                ("Ctrl", "Ctrl".to_string()),
+                ("Shift", "Shift".to_string()),
+                ("Escape", "Escape".to_string()),
+                ("Enter", "Enter".to_string()),
+                ("None", "None".to_string()),
+            ])
+            .lens(drawing_area::AppData::save_image_modifier),
+        )
         .with_child(Label::new("Save Image Key: "))
         .with_child(
             TextBox::new()

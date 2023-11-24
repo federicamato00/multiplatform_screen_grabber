@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    sync::{Arc, Condvar, Mutex},
+};
 
 use drawing_area::Conventions;
 use druid::LocalizedString;
@@ -12,6 +15,7 @@ use druid_shell::keyboard_types::Key;
 mod convention_window;
 mod drawing_area;
 mod function;
+mod information_window;
 mod screenshot;
 mod shortkeys_window;
 mod window_format;
@@ -59,6 +63,7 @@ fn main() {
         copy_clipboard_key: (Key::Character("s".to_string())).to_string(),
         file_path: "screenshot_grabbed".to_string(),
         my_convention: Conventions::DefaultConvention,
+        myselector: Arc::new((Mutex::new(false), Condvar::new())),
     };
 
     AppLauncher::with_window(main_window)
