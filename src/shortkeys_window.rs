@@ -240,7 +240,7 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
     let apply_button =
         Button::new("Apply").on_click(|ctx, data: &mut drawing_area::AppData, _env| {
             // Qui puoi definire le tue HotKey basate sui valori in data
-            data.hotkeys = Vec::new();
+            data.hotkeys.clear();
             if data.save_image_modifier.eq("Shift") {
                 data.save_image_key.make_ascii_uppercase();
             }
@@ -441,13 +441,9 @@ pub(crate) fn ui_builder() -> impl Widget<drawing_area::AppData> {
                 .set_always_on_top(true);
 
             if function::are_all_fields_completed(data) && !function::some_fields_are_equal(data) {
-                //data.hotkeys.sort_by(|a, b| b.len().cmp(&a.len()));
                 if data.show_drawing {
                     let display_primary = Display::primary().expect("error");
                     let main_window = WindowDesc::new(drawing_area::build_ui())
-                        //.title(LocalizedString::new("Screen Capture Utility"))
-                        //.show_titlebar(false)
-                        //.set_level(druid::WindowLevel::AppWindow)
                         .with_min_size(Size::new(
                             display_primary.width() as f64,
                             display_primary.height() as f64,

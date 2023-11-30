@@ -4,7 +4,7 @@ use std::{
 };
 
 use drawing_area::Conventions;
-use druid::LocalizedString;
+use druid::{LocalizedString, Point};
 use image::ImageBuffer;
 use window_format::MyRadio;
 
@@ -39,8 +39,8 @@ fn main() {
         restart_format_app_key: (Key::Character("".to_string())).to_string(),
         hotkeys: Vec::new(),
         is_selecting: false,
-        start_position: None,
-        end_position: None,
+        start_position: Some(Point::new(0., 0.)),
+        end_position: Some(Point::new(0., 0.)),
         start_position_to_display: None,
         end_position_to_display: None,
         modify: false,
@@ -54,6 +54,7 @@ fn main() {
         last_key_event: None,
         hide_buttons: false,
         counter: 0,
+        capture_screen: false,
         tasti: HashMap::new(),
         attivazione: HashMap::new(),
         count: 0,

@@ -95,7 +95,6 @@ pub(crate) fn edit_rect(
         DragHandle::TopLeft => {
             data.rect.x0 = mouse_event.pos.x;
             data.rect.y0 = mouse_event.pos.y;
-            // let pos = ctx.to_screen(druid::Point::new(mouse_event.pos.x, mouse_event.pos.y));
 
             let coord = druid::Point { x: pos.x, y: pos.y };
             data.start_position_to_display = Some(druid::Point {
@@ -104,13 +103,10 @@ pub(crate) fn edit_rect(
             });
             data.start_position = Some(coord);
             data.is_selecting = true;
-
-            //println!("{:?}, {:?}",data.start_position,data.end_position);
         }
         DragHandle::BottomRight => {
             data.rect.x1 = mouse_event.pos.x;
             data.rect.y1 = mouse_event.pos.y;
-            // let pos = ctx.to_screen(druid::Point::new(mouse_event.pos.x, mouse_event.pos.y));
 
             let coord = druid::Point { x: pos.x, y: pos.y };
             data.end_position_to_display = Some(druid::Point {
@@ -123,7 +119,6 @@ pub(crate) fn edit_rect(
         DragHandle::BottomLeft => {
             data.rect.x0 = mouse_event.pos.x;
             data.rect.y1 = mouse_event.pos.y;
-            // let pos = ctx.to_screen(druid::Point::new(mouse_event.pos.x, mouse_event.pos.y));
 
             let coord = druid::Point {
                 x: data.end_position.unwrap().x,
@@ -148,7 +143,6 @@ pub(crate) fn edit_rect(
         DragHandle::TopRight => {
             data.rect.x1 = mouse_event.pos.x;
             data.rect.y0 = mouse_event.pos.y;
-            // let pos = ctx.to_screen(druid::Point::new(mouse_event.pos.x, mouse_event.pos.y));
 
             let coord = druid::Point {
                 x: pos.x,

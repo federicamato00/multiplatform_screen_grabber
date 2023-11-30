@@ -8,7 +8,7 @@ use druid::widget::{
 };
 use druid::{
     Color, Data, Env, Event, EventCtx, FileDialogOptions, ImageBuf, Insets, Lens, PaintCtx, Point,
-    Rect, RenderContext, Size, Widget, WidgetExt, WindowDesc,
+    Rect, RenderContext, Selector, Size, Widget, WidgetExt, WindowDesc,
 };
 
 use druid_shell::{keyboard_types::Key, piet::ImageFormat, KeyEvent, MouseButton};
@@ -51,6 +51,7 @@ pub struct AppData {
     pub(crate) hide_buttons: bool,
     pub(crate) switch_window: bool,
     pub(crate) show_drawing: bool,
+    pub(crate) capture_screen: bool,
     pub(crate) copy_clipboard_modifier: String,
     pub(crate) copy_clipboard_key: String,
     pub(crate) file_path: String,
@@ -92,21 +93,27 @@ pub enum Conventions {
 }
 
 struct DrawingArea;
+
+static ENTIRE_SCREEN: Selector = Selector::new("ENTIRE SCREEN");
 impl Widget<AppData> for DrawingArea {
     fn event(&mut self, ctx: &mut EventCtx, event: &druid::Event, data: &mut AppData, _env: &Env) {
         match event {
-            // Event::WindowConnected => {
-            //     println!("ciao");
-            //     // Imposta la dimensione della finestra
-            //     let display_primary = Display::primary().expect("couldn't find primary display");
-            //     let size = Size::new(
-            //         display_primary.width() as f64,
-            //         display_primary.height() as f64,
-            //     ); // Imposta le dimensioni desiderate qui
-            //     ctx.window().set_size(size);
-            //     //println!("size window {:?}",size);
+            druid::Event::Command(cmd) if cmd.is(ENTIRE_SCREEN) => {
+                if data.capture_screen {
+                    let start_position = Some(Point { x: 0., y: 0. });
+                    let end_position = Some(Point::new(
+                        Display::primary().expect("err").width() as f64,
+                        Display::primary().expect("err").height() as f64,
+                    ));
 
-            // }
+                    data.myimage =
+                        screenshot::screen_new(start_position.unwrap(), end_position.unwrap());
+                    data.capture_screen = false;
+                    data.hide_buttons = false;
+                    data.start_position = None;
+                    data.end_position = None;
+                }
+            }
             druid::Event::MouseDown(mouse_event) => {
                 if data.modify == true && data.is_dragging == false {
                     data.start_position = None;
@@ -161,30 +168,29 @@ impl Widget<AppData> for DrawingArea {
                 if data.is_dragging == true {
                     //println!("{:?}",(mouse_event.pos - data.rect.origin()).hypot());
                     if (mouse_event.pos - data.rect.origin()).hypot() < 70.0 {
-                        ctx.set_cursor(&druid::Cursor::ResizeUpDown);
+                        ctx.set_cursor(&druid::Cursor::Crosshair);
                         data.where_dragging = Some(DragHandle::TopLeft);
                         ctx.set_active(true);
                     } else if (mouse_event.pos - Point::new(data.rect.x1, data.rect.y1)).hypot()
                         < 70.0
                     {
-                        ctx.set_cursor(&druid::Cursor::ResizeUpDown);
+                        ctx.set_cursor(&druid::Cursor::Crosshair);
                         data.where_dragging = Some(DragHandle::BottomRight);
                         ctx.set_active(true);
                     } else if (mouse_event.pos - Point::new(data.rect.x0, data.rect.y1)).hypot()
                         < 70.0
                     {
-                        ctx.set_cursor(&druid::Cursor::ResizeUpDown);
+                        ctx.set_cursor(&druid::Cursor::Crosshair);
                         data.where_dragging = Some(DragHandle::BottomLeft);
                         ctx.set_active(true);
                     } else if (mouse_event.pos - Point::new(data.rect.x1, data.rect.y0)).hypot()
                         < 70.0
                     {
-                        ctx.set_cursor(&druid::Cursor::ResizeUpDown);
+                        ctx.set_cursor(&druid::Cursor::Crosshair);
                         data.where_dragging = Some(DragHandle::TopRight);
                         ctx.set_active(true);
                     } else {
                         data.hide_buttons = false;
-                        ctx.set_cursor(&druid::Cursor::Arrow);
                     }
                     data.is_selecting = true;
                 }
@@ -335,7 +341,10 @@ impl Widget<AppData> for DrawingArea {
                     data.hide_buttons = false;
                 }
                 // println!("{:?}",data.rect);
-                if data.start_position != None && data.end_position != None {
+                if data.start_position != None
+                    && data.end_position != None
+                    && data.start_position != data.end_position
+                {
                     data.myimage = screenshot::screen_new(
                         data.start_position.unwrap(),
                         data.end_position.unwrap(),
@@ -349,11 +358,14 @@ impl Widget<AppData> for DrawingArea {
 
     fn lifecycle(
         &mut self,
-        _ctx: &mut druid::LifeCycleCtx,
+        ctx: &mut druid::LifeCycleCtx,
         _event: &druid::LifeCycle,
-        _data: &AppData,
+        data: &AppData,
         _env: &Env,
     ) {
+        if data.capture_screen {
+            ctx.submit_command(ENTIRE_SCREEN);
+        }
     }
 
     fn update(
@@ -726,19 +738,20 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
     let skip_panel = ViewSwitcher::new(
         move |data: &AppData, _env| data.hide_buttons,
         move |selector, data: &AppData, _env| {
+            let mut s = "".to_string();
             let mut color_border = Color::WHITE;
-            let combinazione;
-            if data.start_image_modifier != "None".to_string() {
-                combinazione =
-                    data.start_image_modifier.as_str().to_owned() + "+" + &data.start_image_key;
-            } else {
-                combinazione = data.start_image_key.clone();
-            }
-            let s = format!("To capture the entire screen click on Start (or press your shortcut {:?}) + mouse click on the screen", combinazione);
             if data.myimage.width() == 0 && data.myimage.height() == 0 {
                 color_border = Color::TRANSPARENT;
             }
-
+            if data.start_position == data.end_position
+                && data.start_position != None
+                && data.end_position != None
+                && data.start_position != Some(Point::new(0., 0.))
+                && data.end_position != Some(Point::new(0., 0.))
+            {
+                s = "You pressed only one point on the screen, invalid area to perform a capture "
+                    .to_string();
+            }
             match selector {
                 false => Box::new(
                     Box::new(
@@ -759,6 +772,12 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                             },
                                         ),
                                     ))
+                                    .with_child(Button::new("Entire screen").on_click(
+                                        |_ctx: &mut EventCtx, data: &mut AppData, _: &Env| {
+                                            data.hide_buttons = true;
+                                            data.capture_screen = true;
+                                        },
+                                    ))
                                     .with_child(Button::new("Save Screen").on_click(
                                         |_ctx: &mut EventCtx, data: &mut AppData, _env: &Env| {
                                             if data.myimage.width() != 0
@@ -768,20 +787,39 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                             }
                                         },
                                     ))
-                                    .with_child(Button::new("Close").on_click(
-                                        |ctx: &mut EventCtx, _data: &mut AppData, _: &Env| {
-                                            ctx.submit_command(druid::commands::QUIT_APP);
-                                        },
-                                    ))
                                     .with_child(Button::new("Edit").on_click(
                                         |_ctx: &mut EventCtx, data: &mut AppData, _: &Env| {
                                             if data.start_position != None
                                                 && data.end_position != None
+                                                && data.start_position != data.end_position
                                             {
                                                 data.hide_buttons = true;
                                                 data.is_dragging = true;
                                                 data.is_selecting = true;
                                             }
+                                        },
+                                    ))
+                                    .with_child(Button::new("Copy to clipboard").on_click(
+                                        |_ctx: &mut EventCtx, data: &mut AppData, _: &Env| {
+                                            if data.myimage.height() != 0
+                                                && data.myimage.width() != 0
+                                            {
+                                                let clipboard =
+                                                    &mut arboard::Clipboard::new().unwrap();
+
+                                                let bytes = data.myimage.as_bytes();
+                                                let img_data = ImageData {
+                                                    width: data.myimage.width() as usize,
+                                                    height: data.myimage.height() as usize,
+                                                    bytes: bytes.as_ref().into(),
+                                                };
+                                                clipboard.set_image(img_data).unwrap();
+                                            }
+                                        },
+                                    ))
+                                    .with_child(Button::new("Close").on_click(
+                                        |ctx: &mut EventCtx, _data: &mut AppData, _: &Env| {
+                                            ctx.submit_command(druid::commands::QUIT_APP);
                                         },
                                     ))
                                     .with_child(Button::new("Choose your shortkeys").on_click(
@@ -827,24 +865,6 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                                     .show_titlebar(true)
                                                     .set_position(Point::new(500., 300.));
                                             ctx.new_window(format_window);
-                                        },
-                                    ))
-                                    .with_child(Button::new("Copy to clipboard").on_click(
-                                        |_ctx: &mut EventCtx, data: &mut AppData, _: &Env| {
-                                            if data.myimage.height() != 0
-                                                && data.myimage.width() != 0
-                                            {
-                                                let clipboard =
-                                                    &mut arboard::Clipboard::new().unwrap();
-
-                                                let bytes = data.myimage.as_bytes();
-                                                let img_data = ImageData {
-                                                    width: data.myimage.width() as usize,
-                                                    height: data.myimage.height() as usize,
-                                                    bytes: bytes.as_ref().into(),
-                                                };
-                                                clipboard.set_image(img_data).unwrap();
-                                            }
                                         },
                                     ))
                                     .with_child(
@@ -899,7 +919,7 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                     )),
                             )
                             .with_child(Label::new(
-                                "To exit from the edit mode, click on any position of the screen",
+                                "To exit edit mode, click on any position of the screen",
                             ))
                             .with_child(Label::new(s))
                             .with_child(
