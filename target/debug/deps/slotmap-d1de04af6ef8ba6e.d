@@ -1,0 +1,11 @@
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/slotmap-d1de04af6ef8ba6e.rmeta: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/basic.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/dense.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/hop.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/secondary.rs
+
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/libslotmap-d1de04af6ef8ba6e.rlib: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/basic.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/dense.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/hop.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/secondary.rs
+
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/slotmap-d1de04af6ef8ba6e.d: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/basic.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/dense.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/hop.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/secondary.rs
+
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/lib.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/basic.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/dense.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/hop.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/slotmap-1.0.6/src/secondary.rs:

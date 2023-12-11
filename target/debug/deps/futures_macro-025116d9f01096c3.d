@@ -1,0 +1,9 @@
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/libfutures_macro-025116d9f01096c3.dylib: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/executor.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/join.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/select.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/stream_select.rs
+
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/futures_macro-025116d9f01096c3.d: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/executor.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/join.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/select.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/stream_select.rs
+
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/lib.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/executor.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/join.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/select.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/futures-macro-0.3.29/src/stream_select.rs:

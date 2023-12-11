@@ -1,0 +1,10 @@
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/thread_local-85771f1192284e6c.rmeta: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/cached.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/thread_id.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/unreachable.rs
+
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/libthread_local-85771f1192284e6c.rlib: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/cached.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/thread_id.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/unreachable.rs
+
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/thread_local-85771f1192284e6c.d: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/cached.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/thread_id.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/unreachable.rs
+
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/lib.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/cached.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/thread_id.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thread_local-1.1.7/src/unreachable.rs:

@@ -1,0 +1,8 @@
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/fluent_langneg-4d589176a853040e.rmeta: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/fluent-langneg-0.13.0/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/fluent-langneg-0.13.0/src/accepted_languages.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/fluent-langneg-0.13.0/src/negotiate/mod.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/fluent-langneg-0.13.0/src/negotiate/likely_subtags.rs
+
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/fluent_langneg-4d589176a853040e.d: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/fluent-langneg-0.13.0/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/fluent-langneg-0.13.0/src/accepted_languages.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/fluent-langneg-0.13.0/src/negotiate/mod.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/fluent-langneg-0.13.0/src/negotiate/likely_subtags.rs
+
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/fluent-langneg-0.13.0/src/lib.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/fluent-langneg-0.13.0/src/accepted_languages.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/fluent-langneg-0.13.0/src/negotiate/mod.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/fluent-langneg-0.13.0/src/negotiate/likely_subtags.rs:

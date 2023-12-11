@@ -1,0 +1,11 @@
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/gif-c05f32b879325a07.rmeta: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/traits.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/common.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/reader/mod.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/reader/decoder.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/encoder.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/../README.md
+
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/gif-c05f32b879325a07.d: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/traits.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/common.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/reader/mod.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/reader/decoder.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/encoder.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/../README.md
+
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/lib.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/traits.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/common.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/reader/mod.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/reader/decoder.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/encoder.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gif-0.12.0/src/../README.md:

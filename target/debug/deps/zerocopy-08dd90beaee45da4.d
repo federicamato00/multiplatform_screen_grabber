@@ -1,0 +1,14 @@
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/zerocopy-08dd90beaee45da4.rmeta: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/macros.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/macro_util.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/util.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/third_party/rust/layout.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/wrappers.rs
+
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/libzerocopy-08dd90beaee45da4.rlib: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/macros.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/macro_util.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/util.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/third_party/rust/layout.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/wrappers.rs
+
+/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/deps/zerocopy-08dd90beaee45da4.d: /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/lib.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/macros.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/macro_util.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/util.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/third_party/rust/layout.rs /Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/wrappers.rs
+
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/lib.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/macros.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/macro_util.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/util.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/third_party/rust/layout.rs:
+/Users/federicaamato/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zerocopy-0.7.21/src/wrappers.rs:
+
+# env-dep:CARGO_PKG_VERSION=0.7.21
