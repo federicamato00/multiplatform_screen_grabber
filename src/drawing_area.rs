@@ -741,6 +741,12 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                             if found == true {
                                 data.hide_buttons = true;
                                 data.capture_screen = true;
+                                data.end_position = None;
+                                data.end_position_to_display = None;
+                                data.start_position_to_display = None;
+                                data.start_position = None;
+                                data.is_dragging = false;
+                                data.is_selecting = false;
                                 data.attivazione.clear();
                                 data.last_key_event = Some(key_event.clone());
                                 data.is_found = true;
@@ -801,6 +807,12 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                                         |_ctx: &mut EventCtx, data: &mut AppData, _: &Env| {
                                             data.hide_buttons = true;
                                             data.capture_screen = true;
+                                            data.end_position = None;
+                                            data.end_position_to_display = None;
+                                            data.start_position_to_display = None;
+                                            data.start_position = None;
+                                            data.is_dragging = false;
+                                            data.is_selecting = false;
                                         },
                                     ))
                                     .with_child(Button::new("Save Screen").on_click(
