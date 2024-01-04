@@ -97,6 +97,7 @@ struct DrawingArea;
 static ENTIRE_SCREEN: Selector = Selector::new("ENTIRE SCREEN");
 impl Widget<AppData> for DrawingArea {
     fn event(&mut self, ctx: &mut EventCtx, event: &druid::Event, data: &mut AppData, _env: &Env) {
+        ctx.request_focus();
         match event {
             druid::Event::Command(cmd) if cmd.is(ENTIRE_SCREEN) => {
                 if data.capture_screen {
@@ -949,7 +950,11 @@ pub(crate) fn build_ui() -> impl Widget<AppData> {
                         1.,
                     ))),
                 ),
-                true => Box::new(Flex::column().with_child(DrawingArea)),
+                true => Box::new(
+                    Flex::column()
+                        .with_child(DrawingArea)
+                        .background(BackgroundBrush::Color(Color::BLACK.with_alpha(0.08))),
+                ),
             }
         },
     );
