@@ -47,6 +47,8 @@ pub struct AppData {
     pub(crate) restart_app_key: String,
     pub(crate) restart_format_app_modifier: String,
     pub(crate) restart_format_app_key: String,
+    pub(crate) entire_screen_modifier: String,
+    pub(crate) entire_screen_key: String,
     pub(crate) is_found: bool,
     pub(crate) hide_buttons: bool,
     pub(crate) switch_window: bool,
@@ -720,6 +722,28 @@ impl<W: Widget<AppData>> Controller<AppData, W> for MyViewHandler {
                                     };
                                     clipboard.set_image(img_data).unwrap();
                                 }
+                            }
+                        }
+
+                        //entire screen capture
+
+                        let mut found = true;
+                        if !data.is_found {
+                            for key in data.attivazione.keys() {
+                                if !data.hotkeys.get(7).unwrap().keys.contains_key(key)
+                                    || data.hotkeys.get(7).unwrap().keys.len()
+                                        != data.attivazione.keys().len()
+                                {
+                                    found = false;
+                                    break;
+                                }
+                            }
+                            if found == true {
+                                data.hide_buttons = true;
+                                data.capture_screen = true;
+                                data.attivazione.clear();
+                                data.last_key_event = Some(key_event.clone());
+                                data.is_found = true;
                             }
                         }
 
