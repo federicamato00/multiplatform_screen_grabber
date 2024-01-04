@@ -6,4 +6,4 @@ This is a multiplatform screen grabber entirely written in Rust that implements 
 
 - Andrea Esposito, s319996
 - Federica Amato, s310275
-- Marco Colangelo, s309798"
+- Marco Colangelo, s309798
