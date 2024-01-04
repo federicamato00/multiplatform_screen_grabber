@@ -21,7 +21,7 @@ cargo:rerun-if-env-changed=HOST_CFLAGS
 HOST_CFLAGS = None
 cargo:rerun-if-env-changed=CFLAGS
 CFLAGS = None
-running: "cc" "-O0" "-ffunction-sections" "-fdata-sections" "-fPIC" "-gdwarf-2" "-fno-omit-frame-pointer" "-arch" "arm64" "-Wall" "-Wextra" "-o" "/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/build/objc_exception-5b413739322f6e9d/out/extern/exception.o" "-c" "extern/exception.m"
+running: "cc" "-O0" "-ffunction-sections" "-fdata-sections" "-fPIC" "-gdwarf-2" "-fno-omit-frame-pointer" "-arch" "arm64" "-Wall" "-Wextra" "-o" "/Users/federicaamato/Desktop/multiplatform_screen_grabber-1/target/debug/build/objc_exception-5b413739322f6e9d/out/extern/exception.o" "-c" "extern/exception.m"
 exit status: 0
 cargo:rerun-if-env-changed=AR_aarch64-apple-darwin
 AR_aarch64-apple-darwin = None
@@ -39,9 +39,9 @@ cargo:rerun-if-env-changed=HOST_ARFLAGS
 HOST_ARFLAGS = None
 cargo:rerun-if-env-changed=ARFLAGS
 ARFLAGS = None
-running: ZERO_AR_DATE="1" "ar" "cq" "/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/build/objc_exception-5b413739322f6e9d/out/libexception.a" "/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/build/objc_exception-5b413739322f6e9d/out/extern/exception.o"
+running: ZERO_AR_DATE="1" "ar" "cq" "/Users/federicaamato/Desktop/multiplatform_screen_grabber-1/target/debug/build/objc_exception-5b413739322f6e9d/out/libexception.a" "/Users/federicaamato/Desktop/multiplatform_screen_grabber-1/target/debug/build/objc_exception-5b413739322f6e9d/out/extern/exception.o"
 exit status: 0
-running: "ar" "s" "/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/build/objc_exception-5b413739322f6e9d/out/libexception.a"
+running: "ar" "s" "/Users/federicaamato/Desktop/multiplatform_screen_grabber-1/target/debug/build/objc_exception-5b413739322f6e9d/out/libexception.a"
 exit status: 0
 cargo:rustc-link-lib=static=exception
-cargo:rustc-link-search=native=/Users/federicaamato/Desktop/multiplatform_screen_grabber/target/debug/build/objc_exception-5b413739322f6e9d/out
+cargo:rustc-link-search=native=/Users/federicaamato/Desktop/multiplatform_screen_grabber-1/target/debug/build/objc_exception-5b413739322f6e9d/out
